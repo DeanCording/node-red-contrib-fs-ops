@@ -32,13 +32,13 @@ module.exports = function(RED) {
 
         node.name = n.name;
         node.sourcePath = n.sourcePath || "";
-        node.sourcePathType = n.sourcePathType || "msg";
+        node.sourcePathType = n.sourcePathType || "str";
         node.sourceFilename = n.sourceFilename || "";
-        node.sourceFilenameType = n.sourceFilenameType || "msg";
+        node.sourceFilenameType = n.sourceFilenameType || "str";
         node.destPath = n.destPath || "";
-        node.destPathType = n.destPathType || "msg";
+        node.destPathType = n.destPathType || "str";
         node.destFilename = n.destFilename || "";
-        node.destFilenameType = n.destFilenameType || "msg";
+        node.destFilenameType = n.destFilenameType || "str";
         node.on("input", function(msg) {
 
             var source = "";
@@ -100,5 +100,110 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-move", MoveNode);
+
+    function DeleteNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "msg";
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf('/') != pathname.length)) {
+                pathname += '/';
+            }
+
+            if (node.filenameType === 'str') {
+                pathname += node.filename;
+            } else if (node.filenameType === 'msg') {
+                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
+            } else if (node.filenameType === 'flow') {
+                pathname += node.context().flow.get(node.filename).toString();
+            } else if (node.filenameType === 'global') {
+                pathname += node.context().global.get(node.filename).toString();
+            }
+
+
+            fs.unlinkSync(pathname);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-delete", DeleteNode);
+
+    function AccessNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "str";
+        node.read = n.read || 1;
+        node.write = n.write || 1;
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf('/') != pathname.length)) {
+                pathname += '/';
+            }
+
+            if (node.filenameType === 'str') {
+                pathname += node.filename;
+            } else if (node.filenameType === 'msg') {
+                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
+            } else if (node.filenameType === 'flow') {
+                pathname += node.context().flow.get(node.filename).toString();
+            } else if (node.filenameType === 'global') {
+                pathname += node.context().global.get(node.filename).toString();
+            }
+
+            var mode = fs.F_OK | (fs.R_OK * node.read) | (fs.W_OK * node.write);
+
+            try {
+                fs.accessSync(pathname, mode);
+            } catch (e) {
+                node.error("File not accessible", msg);
+                return;
+            }
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-access", AccessNode);
+
 }
 
