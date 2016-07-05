@@ -22,6 +22,7 @@
 
 const util = require('util');
 const fs = require('fs');
+const path = require('path');
 
 module.exports = function(RED) {
     "use strict";
@@ -54,8 +55,8 @@ module.exports = function(RED) {
                 source = node.context().global.get(node.sourcePath).toString();
             }
 
-            if ((source.length > 0) && (source.lastIndexOf('/') != source.length)) {
-                source += '/';
+            if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
+                source += path.sep;
             }
 
             if (node.sourceFilenameType === 'str') {
@@ -78,8 +79,8 @@ module.exports = function(RED) {
                 dest = node.context().global.get(node.destPath).toString();
             }
 
-            if ((dest.length > 0) && (dest.lastIndexOf('/') != dest.length)) {
-                dest += '/';
+            if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
+                dest += path.sep;
             }
 
             if (node.destFilenameType === 'str') {
@@ -125,8 +126,8 @@ module.exports = function(RED) {
                 pathname = node.context().global.get(node.path).toString();
             }
 
-            if ((pathname.length > 0) && (pathname.lastIndexOf('/') != pathname.length)) {
-                pathname += '/';
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
             }
 
             if (node.filenameType === 'str') {
@@ -139,8 +140,15 @@ module.exports = function(RED) {
                 pathname += node.context().global.get(node.filename).toString();
             }
 
-
-            fs.unlinkSync(pathname);
+            try {
+                fs.unlinkSync(pathname);
+            } catch (e) {
+                // Deleting a non-existent file is not an error
+                if (e.errno != -2) {
+                    node.error(e, msg);
+                    return null;
+                }
+            }
 
             node.send(msg);
 
@@ -158,8 +166,8 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.filename = n.filename || "";
         node.filenameType = n.filenameType || "str";
-        node.read = n.read || 1;
-        node.write = n.write || 1;
+        node.read = n.read;
+        node.write = n.write;
 
         node.on("input", function(msg) {
 
@@ -175,8 +183,8 @@ module.exports = function(RED) {
                 pathname = node.context().global.get(node.path).toString();
             }
 
-            if ((pathname.length > 0) && (pathname.lastIndexOf('/') != pathname.length)) {
-                pathname += '/';
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
             }
 
             if (node.filenameType === 'str') {
@@ -189,13 +197,15 @@ module.exports = function(RED) {
                 pathname += node.context().global.get(node.filename).toString();
             }
 
-            var mode = fs.F_OK | (fs.R_OK * node.read) | (fs.W_OK * node.write);
+            var mode = fs.F_OK;
+            if (node.read) mode |= fs.R_OK;
+            if (node.write) mode |= fs.W_OK;
 
             try {
                 fs.accessSync(pathname, mode);
             } catch (e) {
-                node.error("File not accessible", msg);
-                return;
+                node.error("File " + pathname + " is not accessible " + e, msg);
+                return null;
             }
 
             node.send(msg);
