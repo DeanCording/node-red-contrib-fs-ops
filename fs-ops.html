@@ -268,7 +268,7 @@
             if (!this.sizeType) {
                 this.filenameType = 'msg';
             }
-            $("#node-input-filename").typedInput({
+            $("#node-input-size").typedInput({
                 default: 'msg',
                 types: ['msg','flow','global'],
                 typeField: $("#node-input-sizeType")
@@ -285,12 +285,12 @@
     </div>
     <div class="form-row">
         <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
-        <input type="text" id="node-input-path" placeholder="Path of file to delete" style="width:250px;">
+        <input type="text" id="node-input-path" placeholder="Path" style="width:250px;">
         <input type="hidden" id="node-input-pathType">
     </div>
     <div class="form-row">
         <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
-        <input type="text" id="node-input-filename" placeholder="File to delete" style="width:250px;">
+        <input type="text" id="node-input-filename" placeholder="Filename" style="width:250px;">
         <input type="hidden" id="node-input-filenameType">
     </div>
     <div class="form-row">

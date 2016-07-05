@@ -215,7 +215,6 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("fs-ops-access", AccessNode);
 
-}
 
     function SizeNode(n) {
         RED.nodes.createNode(this,n);
@@ -262,9 +261,9 @@ module.exports = function(RED) {
             if (node.sizeType === 'msg') {
                 RED.util.setMessageProperty(msg,node.size, size);
             } else if (node.sizeType === 'flow') {
-                node.context().flow.set(node.filename, size);
-            } else if (node.filenameType === 'global') {
-                node.context().global.get(node.filename, size);
+                node.context().flow.set(node.size, size);
+            } else if (node.sizeType === 'global') {
+                node.context().global.get(node.size, size);
             }
 
             node.send(msg);
@@ -273,3 +272,4 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-size", SizeNode);
+}
