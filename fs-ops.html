@@ -1,0 +1,93 @@
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-move',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    sourcePath: {value: ""},
+            sourcePathType: {value: "str"},
+	    sourceFilename: {value: ""},
+            sourceFilenameType: {value: "msg"},
+            destPath: {value: ""},
+            destPathType: {value: "str"}
+            destFilename: {value: ""},
+            destFilenameType: {value: "msg"}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"File Move";
+        },
+        oneditprepare: function() {
+            if (!this.sourcePathType) {
+                this.sourcePathType = 'str';
+            }
+            $("#node-input-sourcePath").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-sourcePathType")
+            });
+
+            if (!this.sourceFilenameType) {
+                this.sourceFilenameType = 'msg';
+            }
+            $("#node-input-sourceFilename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-sourceFilenameType")
+            });
+
+            if (!this.destPathType) {
+                this.destPathType = 'str';
+            }
+            $("#node-input-destPath").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-destPathType")
+            });
+
+            if (!this.destFilenameType) {
+                this.destFilenameType = 'msg';
+            }
+            $("#node-input-destFilename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-destFilenameType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-move">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sourcePath"><i class="fa fa-folder"></i> Source Path</label>
+        <input type="text" id="node-input-sourcePath" placeholder="Path to move from" style="width:250px;">
+        <input type="hidden" id="node-input-sourcePathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sourceFilename"><i class="fa fa-file"></i> Source Filename</label>
+        <input type="text" id="node-input-sourceFilename" placeholder="Old filename" style="width:250px;">
+        <input type="hidden" id="node-input-sourceFilenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destPath"><i class="fa fa-folder"></i> Destination Path</label>
+        <input type="text" id="node-input-destPath" placeholder="Path to move to" style="width:250px;">
+        <input type="hidden" id="node-input-destPathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destFilename"><i class="fa fa-file"></i> Destination Filename</label>
+        <input type="text" id="node-input-destFilename" placeholder="New filename" style="width:250px;">
+        <input type="hidden" id="node-input-destFilenameType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-move">
+    <p>Moves a file from the source to the destination.</p>
+    <p>Message is actioned and passed through unchanged.</p>
+</script>
