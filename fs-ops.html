@@ -226,3 +226,81 @@
     <p>Message is actioned and passed through unchanged if the file is accessible.
     An error is thrown otherwise that can be caught with a Catch node.</p>
 </script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-size',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: ""},
+            pathType: {value: "str"},
+	    filename: {value: ""},
+            filenameType: {value: "msg"},
+	    size: {value: "filesize"},
+            sizeType: {value: "msg"},
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"File Size";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.filenameType) {
+                this.filenameType = 'msg';
+            }
+            $("#node-input-filename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-filenameType")
+            });
+
+            if (!this.sizeType) {
+                this.filenameType = 'msg';
+            }
+            $("#node-input-filename").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-sizeType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-size">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path of file to delete" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
+        <input type="text" id="node-input-filename" placeholder="File to delete" style="width:250px;">
+        <input type="hidden" id="node-input-filenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-size"><i class="fa fa-edit"></i> Size Property</label>
+        <input type="text" id="node-input-size" placeholder="Property to record size" style="width:250px;">
+        <input type="hidden" id="node-input-sizeType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-size">
+    <p>Determines the size of a file on host filesystem.</p>
+    <p>Error is thrown and message dropped if size cannot be determined.</p>
+</script>

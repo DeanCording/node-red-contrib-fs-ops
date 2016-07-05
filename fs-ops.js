@@ -217,3 +217,59 @@ module.exports = function(RED) {
 
 }
 
+    function SizeNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "msg";
+        node.size = n.size || "";
+        node.sizeType = n.sizeType || "msg";
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            if (node.filenameType === 'str') {
+                pathname += node.filename;
+            } else if (node.filenameType === 'msg') {
+                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
+            } else if (node.filenameType === 'flow') {
+                pathname += node.context().flow.get(node.filename).toString();
+            } else if (node.filenameType === 'global') {
+                pathname += node.context().global.get(node.filename).toString();
+            }
+
+            var size = fs.statSync(pathname).size;
+
+            if (node.sizeType === 'msg') {
+                RED.util.setMessageProperty(msg,node.size, size);
+            } else if (node.sizeType === 'flow') {
+                node.context().flow.set(node.filename, size);
+            } else if (node.filenameType === 'global') {
+                node.context().global.get(node.filename, size);
+            }
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-size", SizeNode);
