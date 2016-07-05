@@ -27,7 +27,7 @@
   },
   "node-red": {
     "nodes": {
-      "md5": "fs-ops.js"
+      "fs-ops": "fs-ops.js"
     }
   }
 }

@@ -54,7 +54,7 @@ module.exports = function(RED) {
                 source = node.context().global.get(node.sourcePath).toString();
             }
 
-            if ((source.length > 0) && ((source.lastIndexOf('/') != source.length)) {
+            if ((source.length > 0) && (source.lastIndexOf('/') != source.length)) {
                 source += '/';
             }
 
