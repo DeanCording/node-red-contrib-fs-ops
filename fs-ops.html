@@ -266,7 +266,7 @@
             });
 
             if (!this.sizeType) {
-                this.filenameType = 'msg';
+                this.sizeType = 'msg';
             }
             $("#node-input-size").typedInput({
                 default: 'msg',
@@ -300,7 +300,86 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="fs-ops-size">
+<script type="text/x-red" data-help-name="fs-ops-dir">
+    <p>Lists the files in a directory on host filesystem.</p>
+    <p>Error is thrown and message dropped if directory cannot be accessed.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-dir',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: ""},
+            pathType: {value: "str"},
+	    filter: {value: "*"},
+            filterType: {value: "str"},
+	    dir: {value: "files"},
+            dirType: {value: "msg"},
+        },
+        inputs:1,
+        outputs:1,
+        icon: "db.png",
+        label: function() {
+            return this.name||"Directory";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.filterType) {
+                this.filterType = 'msg';
+            }
+            $("#node-input-filter").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-filterType")
+            });
+
+            if (!this.dirType) {
+                this.dirType = 'msg';
+            }
+            $("#node-input-dir").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-dirType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-dir">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-filter"><i class="fa fa-filter"></i> Filter</label>
+        <input type="text" id="node-input-filter" placeholder="Filename filter" style="width:250px;">
+        <input type="hidden" id="node-input-filterType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-dir"><i class="fa fa-edit"></i> Directory Property</label>
+        <input type="text" id="node-input-dir" placeholder="Property to record directory files" style="width:250px;">
+        <input type="hidden" id="node-input-dirType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-dir">
     <p>Determines the size of a file on host filesystem.</p>
-    <p>Error is thrown and message dropped if size cannot be determined.</p>
+    <p>File names are returned as a array in the specified property.Error is thrown and message
+    dropped if size cannot be determined.</p>
 </script>

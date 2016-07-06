@@ -273,3 +273,67 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("fs-ops-size", SizeNode);
 }
+
+    function DirNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filter = n.filename || "";
+        node.filterType = n.filenameType || "msg";
+        node.dir = n.size || "";
+        node.dirType = n.sizeType || "msg";
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            var filter = "*";
+
+            if (node.filterType === 'str') {
+                filter = node.filename;
+            } else if (node.filterType === 'msg') {
+                filter = RED.util.getMessageProperty(msg,node.filter).toString();
+            } else if (node.filterType === 'flow') {
+                filter = node.context().flow.get(node.filter).toString();
+            } else if (node.filterType === 'global') {
+                filter = node.context().global.get(node.filter).toString();
+            }
+
+            filter.replace(/\./g, '\.').replace(/\*/, '.*');
+
+            var dir = fs.readdirSync(pathname);
+            dir.filter(function(value) { filter.test(value) });
+
+            if (node.dirType === 'msg') {
+                RED.util.setMessageProperty(msg,node.dir, dir);
+            } else if (node.dirType === 'flow') {
+                node.context().flow.set(node.dir, dir);
+            } else if (node.dirType === 'global') {
+                node.context().global.get(node.dir, dir);
+            }
+
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-dir", DirNode);
+}
