@@ -394,7 +394,8 @@
             pathType: {value: "str"},
 	    dirname: {value: "", required: true},
             dirnameType: {value: "msg"},
-            mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)}
+            mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)},
+            fullpath: {value: ""}
         },
         inputs:1,
         outputs:1,
@@ -444,9 +445,14 @@
         <label for="node-input-mode"><i class="icon-tag"></i> Access Mode</label>
         <input type="text" id="node-input-mode" placeholder="Octal">
     </div>
+    <div class="form-row">
+        <label for="node-input-fullpath"><i class="icon-tag"></i> Directory Property</label>
+        <input type="text" id="node-input-fullpath" placeholder="">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="fs-ops-mkdir">
     <p>Deletes a file on host filesystem.</p>
-    <p>Message is actioned and passed through unchanged if successful.</p>
+    <p>Message is actioned and passed through if successful.</p>
+    <p>Full pathname of new directory is added to the Directory message property if specified."
 </script>

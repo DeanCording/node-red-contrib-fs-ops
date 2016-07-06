@@ -344,7 +344,8 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.dirname = n.dirname || "";
         node.dirnameType = n.dirnameType || "msg";
-        node.mode = Number('0o' + n.mode) | 0o777;
+        node.mode = parseInt(n.mode, 8);
+        node.fullpath = n.fullpath || "";
 
         node.on("input", function(msg) {
 
@@ -374,14 +375,18 @@ module.exports = function(RED) {
                 pathname += node.context().global.get(node.dirname).toString();
             }
 
-            fs.mkdirSync(path, node.mode);
+            fs.mkdirSync(pathname, node.mode);
+console.log(node.fullpath);
+            if (node.fullpath.length > 0) { 
+                RED.util.setMessageProperty(msg, node.fullpath, pathname);
+            }
 
             node.send(msg);
 
         });
     }
 
-    RED.nodes.registerType("fs-ops-mkdir", DeleteNode);
+    RED.nodes.registerType("fs-ops-mkdir", MkdirNode);
 
 
 }
