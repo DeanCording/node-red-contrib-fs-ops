@@ -334,4 +334,54 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-dir", DirNode);
+
+    function MkdirNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.dirname = n.dirname || "";
+        node.dirnameType = n.dirnameType || "msg";
+        node.mode = Number('0o' + n.mode) | 0o777;
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            if (node.dirnameType === 'str') {
+                pathname += node.dirname;
+            } else if (node.dirnameType === 'msg') {
+                pathname += RED.util.getMessageProperty(msg,node.dirname).toString();
+            } else if (node.dirnameType === 'flow') {
+                pathname += node.context().flow.get(node.dirname).toString();
+            } else if (node.dirnameType === 'global') {
+                pathname += node.context().global.get(node.dirname).toString();
+            }
+
+            fs.mkdirSync(path, node.mode);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-mkdir", DeleteNode);
+
+
 }

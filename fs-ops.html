@@ -4,13 +4,13 @@
         color: '#767432',
         defaults: {
             name: {value:""},
-	    sourcePath: {value: ""},
+	    sourcePath: {value: "", required: true},
             sourcePathType: {value: "str"},
-	    sourceFilename: {value: ""},
+	    sourceFilename: {value: "", required: true},
             sourceFilenameType: {value: "msg"},
-            destPath: {value: ""},
+            destPath: {value: "", required: true},
             destPathType: {value: "str"},
-            destFilename: {value: ""},
+            destFilename: {value: "", required: true},
             destFilenameType: {value: "msg"}
         },
         inputs:1,
@@ -99,10 +99,10 @@
         color: '#767432',
         defaults: {
             name: {value:""},
-	    path: {value: ""},
+	    path: {value: "", required: true},
             pathType: {value: "str"},
-	    filename: {value: ""},
-            filenameType: {value: "msg"},
+	    filename: {value: "", required: true},
+            filenameType: {value: "msg"}
         },
         inputs:1,
         outputs:1,
@@ -161,9 +161,9 @@
         color: '#767432',
         defaults: {
             name: {value:""},
-	    path: {value: ""},
+	    path: {value: "", required: true},
             pathType: {value: "str"},
-	    filename: {value: ""},
+	    filename: {value: "", required: true},
             filenameType: {value: "msg"},
             read: {value: true},
             write: {value: true}
@@ -233,12 +233,12 @@
         color: '#767432',
         defaults: {
             name: {value:""},
-	    path: {value: ""},
+	    path: {value: "", required: true},
             pathType: {value: "str"},
-	    filename: {value: ""},
+	    filename: {value: "", required: true},
             filenameType: {value: "msg"},
-	    size: {value: "filesize"},
-            sizeType: {value: "msg"},
+	    size: {value: "filesize", required: true},
+            sizeType: {value: "msg"}
         },
         inputs:1,
         outputs:1,
@@ -311,12 +311,12 @@
         color: '#767432',
         defaults: {
             name: {value:""},
-	    path: {value: ""},
+	    path: {value: "", required: true},
             pathType: {value: "str"},
 	    filter: {value: "*"},
             filterType: {value: "str"},
-	    dir: {value: "files"},
-            dirType: {value: "msg"},
+	    dir: {value: "files", required: true},
+            dirType: {value: "msg"}
         },
         inputs:1,
         outputs:1,
@@ -382,4 +382,71 @@
     <p>Determines the size of a file on host filesystem.</p>
     <p>File names are returned as a array in the specified property.Error is thrown and message
     dropped if size cannot be determined.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-mkdir',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: "", required: true},
+            pathType: {value: "str"},
+	    dirname: {value: "", required: true},
+            dirnameType: {value: "msg"},
+            mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"Make Directory";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.dirnameType) {
+                this.dirnameType = 'msg';
+            }
+            $("#node-input-dirname").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-dirnameType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-mkdir">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path of file to delete" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-dirname"><i class="fa fa-folder"></i> Directory</label>
+        <input type="text" id="node-input-dirname" placeholder="New directory name" style="width:250px;">
+        <input type="hidden" id="node-input-dirnameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-mode"><i class="icon-tag"></i> Access Mode</label>
+        <input type="text" id="node-input-mode" placeholder="Octal">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-mkdir">
+    <p>Deletes a file on host filesystem.</p>
+    <p>Message is actioned and passed through unchanged if successful.</p>
 </script>
