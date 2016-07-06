@@ -428,7 +428,14 @@ module.exports = function(RED) {
                 pathname += node.context().global.get(node.prefix).toString();
             }
 
-            pathname = fs.mkdtempSync(pathname, node.mode);
+            if (fs.mkdtempSync) {
+                pathname = fs.mkdtempSync(pathname, node.mode);
+
+            } else {
+                pathname += Math.random().toString(36).slice(2,8);
+                fs.mkdir(pathname, node.mode);
+
+            }
 
             RED.util.setMessageProperty(msg, node.fullpath, pathname);
 
@@ -437,6 +444,6 @@ module.exports = function(RED) {
         });
     }
 
-    RED.nodes.registerType("fs-ops-mktmpdir", MkdirNode);
+    RED.nodes.registerType("fs-ops-mktmpdir", MktmpdirNode);
 
 }

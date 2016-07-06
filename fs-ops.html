@@ -468,7 +468,7 @@
 	    prefix: {value: "", required: true},
             prefixType: {value: "msg"},
             mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)},
-            fullpath: {value: ""}
+            fullpath: {value: "", required: true}
         },
         inputs:1,
         outputs:1,
@@ -524,7 +524,7 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="fs-ops-mkdir">
+<script type="text/x-red" data-help-name="fs-ops-mktmpdir">
     <p>Creates a new temporary directory on host filesystem.</p>
     <p>New directory name will be prefix with six random characters appended.</p>
     <p>Message is actioned and passed through if successful.</p>
