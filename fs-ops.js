@@ -272,7 +272,7 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-size", SizeNode);
-}
+
 
     function DirNode(n) {
         RED.nodes.createNode(this,n);
@@ -281,10 +281,10 @@ module.exports = function(RED) {
         node.name = n.name;
         node.path = n.path || "";
         node.pathType = n.pathType || "str";
-        node.filter = n.filename || "";
-        node.filterType = n.filenameType || "msg";
-        node.dir = n.size || "";
-        node.dirType = n.sizeType || "msg";
+        node.filter = n.filter || "*";
+        node.filterType = n.filterType || "msg";
+        node.dir = n.dir || "";
+        node.dirType = n.dirType || "msg";
 
         node.on("input", function(msg) {
 
@@ -300,14 +300,10 @@ module.exports = function(RED) {
                 pathname = node.context().global.get(node.path).toString();
             }
 
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
-                pathname += path.sep;
-            }
-
             var filter = "*";
 
             if (node.filterType === 'str') {
-                filter = node.filename;
+                filter = node.filter;
             } else if (node.filterType === 'msg') {
                 filter = RED.util.getMessageProperty(msg,node.filter).toString();
             } else if (node.filterType === 'flow') {
@@ -316,10 +312,12 @@ module.exports = function(RED) {
                 filter = node.context().global.get(node.filter).toString();
             }
 
-            filter.replace(/\./g, '\.').replace(/\*/, '.*');
+            filter = filter.replace('.', '\\.');
+            filter = filter.replace('*', '.*');
+            filter = new RegExp(filter);
 
             var dir = fs.readdirSync(pathname);
-            dir.filter(function(value) { filter.test(value) });
+            dir = dir.filter(function(value) { return filter.test(value); });
 
             if (node.dirType === 'msg') {
                 RED.util.setMessageProperty(msg,node.dir, dir);
