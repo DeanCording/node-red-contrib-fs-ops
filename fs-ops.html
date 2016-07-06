@@ -433,7 +433,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
-        <input type="text" id="node-input-path" placeholder="Path of file to delete" style="width:250px;">
+        <input type="text" id="node-input-path" placeholder="Path of new directory" style="width:250px;">
         <input type="hidden" id="node-input-pathType">
     </div>
     <div class="form-row">
@@ -452,7 +452,81 @@
 </script>
 
 <script type="text/x-red" data-help-name="fs-ops-mkdir">
-    <p>Deletes a file on host filesystem.</p>
+    <p>Makes a directory on host filesystem.</p>
     <p>Message is actioned and passed through if successful.</p>
-    <p>Full pathname of new directory is added to the Directory message property if specified."
+    <p>Full pathname of new directory is added to the Directory message property if specified.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-mktmpdir',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: "", required: true},
+            pathType: {value: "str"},
+	    prefix: {value: "", required: true},
+            prefixType: {value: "msg"},
+            mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)},
+            fullpath: {value: ""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"Make Tmp Directory";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.prefixType) {
+                this.prefixType = 'msg';
+            }
+            $("#node-input-prefix").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-prefixType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-mktmpdir">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path of tmp directory" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-prefix"><i class="fa fa-folder"></i> Prefix</label>
+        <input type="text" id="node-input-prefix" placeholder="New directory prefix" style="width:250px;">
+        <input type="hidden" id="node-input-prefixType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-mode"><i class="icon-tag"></i> Access Mode</label>
+        <input type="text" id="node-input-mode" placeholder="Octal">
+    </div>
+    <div class="form-row">
+        <label for="node-input-fullpath"><i class="icon-tag"></i> Directory Property</label>
+        <input type="text" id="node-input-fullpath" placeholder="">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-mkdir">
+    <p>Creates a new temporary directory on host filesystem.</p>
+    <p>New directory name will be prefix with six random characters appended.</p>
+    <p>Message is actioned and passed through if successful.</p>
+    <p>Full pathname of new directory is added to the Directory message property.</p>
 </script>

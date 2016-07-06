@@ -376,8 +376,8 @@ module.exports = function(RED) {
             }
 
             fs.mkdirSync(pathname, node.mode);
-console.log(node.fullpath);
-            if (node.fullpath.length > 0) { 
+
+            if (node.fullpath.length > 0) {
                 RED.util.setMessageProperty(msg, node.fullpath, pathname);
             }
 
@@ -388,5 +388,55 @@ console.log(node.fullpath);
 
     RED.nodes.registerType("fs-ops-mkdir", MkdirNode);
 
+    function MktmpdirNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.prefix = n.prefix || "";
+        node.prefixType = n.prefixType || "msg";
+        node.mode = parseInt(n.mode, 8);
+        node.fullpath = n.fullpath || "";
+
+        node.on("input", function(msg) {
+
+            var pathname = "";
+
+            if (node.pathType === 'str') {
+                pathname = node.path;
+            } else if (node.pathType === 'msg') {
+                pathname = RED.util.getMessageProperty(msg,node.path).toString();
+            } else if (node.pathType === 'flow') {
+                pathname = node.context().flow.get(node.path).toString();
+            } else if (node.pathType === 'global') {
+                pathname = node.context().global.get(node.path).toString();
+            }
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            if (node.prefixType === 'str') {
+                pathname += node.prefix;
+            } else if (node.prefixType === 'msg') {
+                pathname += RED.util.getMessageProperty(msg,node.prefix).toString();
+            } else if (node.prefixType === 'flow') {
+                pathname += node.context().flow.get(node.prefix).toString();
+            } else if (node.prefixType === 'global') {
+                pathname += node.context().global.get(node.prefix).toString();
+            }
+
+            pathname = fs.mkdtempSync(pathname, node.mode);
+
+            RED.util.setMessageProperty(msg, node.fullpath, pathname);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-mktmpdir", MkdirNode);
 
 }
