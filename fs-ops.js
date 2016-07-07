@@ -25,7 +25,7 @@ const fs = require('fs');
 const path = require('path');
 
 
-getProperty(name, type) {
+function getProperty(name, type) {
     if (type === 'str') {
         return name;
     } else if (type === 'msg') {
@@ -34,6 +34,8 @@ getProperty(name, type) {
         return node.context().flow.get(name).toString();
     } else if (type === 'global') {
         return node.context().global.get(name).toString();
+    } else {
+        return undefined;
     }
 }
 
