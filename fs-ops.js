@@ -25,32 +25,32 @@ const fs = require('fs');
 const path = require('path');
 
 
-function getProperty(name, type) {
-    if (type === 'str') {
-        return name;
-    } else if (type === 'msg') {
-        return RED.util.getMessageProperty(msg,name).toString();
-    } else if (type === 'flow') {
-        return node.context().flow.get(name).toString();
-    } else if (type === 'global') {
-        return node.context().global.get(name).toString();
-    } else {
-        return undefined;
-    }
-}
-
-function setProperty(msg, name, type, value) {
-    if (type === 'msg') {
-        RED.util.setMessageProperty(msg,name,value);
-    } else if (type === 'flow') {
-        node.context().flow.set(name,value);
-    } else if (type === 'global') {
-        node.context().global.get(name,value);
-    }
-}
-
 module.exports = function(RED) {
     "use strict";
+
+    function getProperty(node, msg, name, type) {
+        if (type === 'str') {
+            return name;
+        } else if (type === 'msg') {
+            return RED.util.getMessageProperty(msg,name).toString();
+        } else if (type === 'flow') {
+            return node.context().flow.get(name).toString();
+        } else if (type === 'global') {
+            return node.context().global.get(name).toString();
+        } else {
+            return undefined;
+        }
+    }
+
+    function setProperty(node, msg, name, type, value) {
+        if (type === 'msg') {
+            RED.util.setMessageProperty(msg,name,value);
+        } else if (type === 'flow') {
+            node.context().flow.set(name,value);
+        } else if (type === 'global') {
+            node.context().global.set(name,value);
+        }
+    }
 
     function MoveNode(n) {
         RED.nodes.createNode(this,n);
@@ -68,17 +68,17 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var source = getProperty(node.sourcePath, node.sourcePathType);
+            var source = getProperty(node, msg, node.sourcePath, node.sourcePathType);
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
-            source += getProperty(node.sourceFilename, node.sourceFilenameType);
+            source += getProperty(node, node.sourceFilename, node.sourceFilenameType);
 
-            var dest = getProperty(node.destPath, node.destPathType);
+            var dest = getProperty(node, msg, node.destPath, node.destPathType);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
                 dest += path.sep;
             }
-            dest += getProperty(node.destFilename, node.destFilenameType);
+            dest += getProperty(node, msg, node.destFilename, node.destFilenameType);
 
             fs.renameSync(source, dest);
 
@@ -101,17 +101,28 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node.filename, node.filenameType);
+            pathname += getProperty(node, msg, node.filename, node.filenameType);
 
             try {
                 fs.unlinkSync(pathname);
             } catch (e) {
-                // Deleting a non-existent file is not an error
-                if (e.errno != -2) {
+                if (e.errno == -21) {
+                    // rmdir instead
+                    try {
+                        fs.rmdirSync(pathname);
+                    } catch (ed) {
+                        if (ed.errno != -2) {
+                            // deleting non-existant directory is OK
+                            node.error(ed, msg);
+                            return null;
+                        }
+                    }
+                } else if (e.errno != -2) {
+                    // Deleting a non-existent file is not an error
                     node.error(e, msg);
                     return null;
                 }
@@ -138,11 +149,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node.filename, node.filenameType);
+            pathname += getProperty(node, msg, node.filename, node.filenameType);
 
             var mode = fs.F_OK;
             if (node.read) mode |= fs.R_OK;
@@ -177,15 +188,15 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node.filename, node.filenameType);
+            pathname += getProperty(node, msg, node.filename, node.filenameType);
 
             var size = fs.statSync(pathname).size;
 
-            setProperty(msg, node.size, node.sizeType, size);
+            setProperty(node, msg, node.size, node.sizeType, size);
 
             node.send(msg);
 
@@ -209,12 +220,12 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
 
-            var filter = getProperty(node.filter, node.filterType);
+            var filter = getProperty(node, msg, node.filter, node.filterType);
 
 
             filter = filter.replace('.', '\\.');
@@ -224,7 +235,7 @@ module.exports = function(RED) {
             var dir = fs.readdirSync(pathname);
             dir = dir.filter(function(value) { return filter.test(value); });
 
-            setProperty(msg, node.dir, node.dirType, dir);
+            setProperty(node, msg, node.dir, node.dirType, dir);
 
             node.send(msg);
 
@@ -244,20 +255,30 @@ module.exports = function(RED) {
         node.dirnameType = n.dirnameType || "msg";
         node.mode = parseInt(n.mode, 8);
         node.fullpath = n.fullpath || "";
+        node.fullpathType = n.fullpathType || "msg";
 
         node.on("input", function(msg) {
 
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node.dirname, node.dirnameType);
+            pathname += getProperty(node, msg, node.dirname, node.dirnameType);
 
-            fs.mkdirSync(pathname, node.mode);
+            try {
+                fs.mkdirSync(pathname, node.mode);
+            } catch (e) {
+                // Creating an existing directory is not an error
+                if (e.errno != -17) {
+                    node.error(e, msg);
+                    return null;
+                }
+            }
+
 
             if (node.fullpath.length > 0) {
-                setProperty(msg, node.fullpath, node,fullpathType, pathname);
+                setProperty(node, msg, node.fullpath, node.fullpathType, pathname);
             }
 
             node.send(msg);
@@ -278,14 +299,16 @@ module.exports = function(RED) {
         node.prefixType = n.prefixType || "msg";
         node.mode = parseInt(n.mode, 8);
         node.fullpath = n.fullpath || "";
+        node.fullpathType = n.fullpathType || "msg";
+
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node.path, node.pathType);
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+            var pathname = getProperty(node, msg, node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node.prefix, node.prefixType);
+            pathname += getProperty(node, msg, node.prefix, node.prefixType);
 
             if (fs.mkdtempSync) {
                 pathname = fs.mkdtempSync(pathname, node.mode);
@@ -296,7 +319,7 @@ module.exports = function(RED) {
 
             }
 
-            setProperty(msg, node.fullpath, node,fullpathType, pathname);
+            setProperty(node, msg, node.fullpath, node.fullpathType, pathname);
 
             node.send(msg);
 
