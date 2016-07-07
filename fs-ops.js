@@ -24,6 +24,21 @@ const util = require('util');
 const fs = require('fs');
 const path = require('path');
 
+
+getProperty(name, type) {
+    if (type === 'str') {
+        return name;
+    } else if (type === 'msg') {
+        return RED.util.getMessageProperty(msg,name).toString();
+    } else if (type === 'flow') {
+        return node.context().flow.get(name).toString();
+    } else if (type === 'global') {
+        return node.context().global.get(name).toString();
+    }
+}
+
+
+
 module.exports = function(RED) {
     "use strict";
 
@@ -40,12 +55,15 @@ module.exports = function(RED) {
         node.destPathType = n.destPathType || "str";
         node.destFilename = n.destFilename || "";
         node.destFilenameType = n.destFilenameType || "str";
+
         node.on("input", function(msg) {
 
             var source = "";
             var dest = "";
 
-            if (node.sourcePathType === 'str') {
+            source = getProperty(node.sourcePath, node.sourcePathType);
+
+/**            if (node.sourcePathType === 'str') {
                 source = node.sourcePath;
             } else if (node.sourcePathType === 'msg') {
                 source = RED.util.getMessageProperty(msg,node.sourcePath).toString();
@@ -54,7 +72,7 @@ module.exports = function(RED) {
             } else if (node.sourcePathType === 'global') {
                 source = node.context().global.get(node.sourcePath).toString();
             }
-
+**/
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
