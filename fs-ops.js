@@ -39,7 +39,15 @@ function getProperty(name, type) {
     }
 }
 
-
+function setProperty(msg, name, type, value) {
+    if (type === 'msg') {
+        RED.util.setMessageProperty(msg,name,value);
+    } else if (type === 'flow') {
+        node.context().flow.set(name,value);
+    } else if (type === 'global') {
+        node.context().global.get(name,value);
+    }
+}
 
 module.exports = function(RED) {
     "use strict";
@@ -60,58 +68,17 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var source = "";
-            var dest = "";
-
-            source = getProperty(node.sourcePath, node.sourcePathType);
-
-/**            if (node.sourcePathType === 'str') {
-                source = node.sourcePath;
-            } else if (node.sourcePathType === 'msg') {
-                source = RED.util.getMessageProperty(msg,node.sourcePath).toString();
-            } else if (node.sourcePathType === 'flow') {
-                source = node.context().flow.get(node.sourcePath).toString();
-            } else if (node.sourcePathType === 'global') {
-                source = node.context().global.get(node.sourcePath).toString();
-            }
-**/
+            var source = getProperty(node.sourcePath, node.sourcePathType);
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
+            source += getProperty(node.sourceFilename, node.sourceFilenameType);
 
-            if (node.sourceFilenameType === 'str') {
-                source += node.sourceFilename;
-            } else if (node.sourceFilenameType === 'msg') {
-                source += RED.util.getMessageProperty(msg,node.sourceFilename).toString();
-            } else if (node.sourceFilenameType === 'flow') {
-                source += node.context().flow.get(node.sourceFilename).toString();
-            } else if (node.sourceFilenameType === 'global') {
-                source += node.context().global.get(node.sourceFilename).toString();
-            }
-
-            if (node.destPathType === 'str') {
-                dest = node.destPath;
-            } else if (node.destPathType === 'msg') {
-                dest = RED.util.getMessageProperty(msg,node.destPath).toString();
-            } else if (node.destPathType === 'flow') {
-                dest = node.context().flow.get(node.destPath).toString();
-            } else if (node.destPathType === 'global') {
-                dest = node.context().global.get(node.destPath).toString();
-            }
-
+            var dest = getProperty(node.destPath, node.destPathType);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
                 dest += path.sep;
             }
-
-            if (node.destFilenameType === 'str') {
-                dest += node.destFilename;
-            } else if (node.destFilenameType === 'msg') {
-                dest += RED.util.getMessageProperty(msg,node.destFilename).toString();
-            } else if (node.destFilenameType === 'flow') {
-                dest += node.context().flow.get(node.destFilename).toString();
-            } else if (node.destFilenameType === 'global') {
-                dest += node.context().global.get(node.destFilename).toString();
-            }
+            dest += getProperty(node.destFilename, node.destFilenameType);
 
             fs.renameSync(source, dest);
 
@@ -134,31 +101,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
-
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
-            }
-
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
                 pathname += path.sep;
             }
-
-            if (node.filenameType === 'str') {
-                pathname += node.filename;
-            } else if (node.filenameType === 'msg') {
-                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
-            } else if (node.filenameType === 'flow') {
-                pathname += node.context().flow.get(node.filename).toString();
-            } else if (node.filenameType === 'global') {
-                pathname += node.context().global.get(node.filename).toString();
-            }
+            pathname += getProperty(node.filename, node.filenameType);
 
             try {
                 fs.unlinkSync(pathname);
@@ -191,31 +138,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
-
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
-            }
-
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
                 pathname += path.sep;
             }
-
-            if (node.filenameType === 'str') {
-                pathname += node.filename;
-            } else if (node.filenameType === 'msg') {
-                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
-            } else if (node.filenameType === 'flow') {
-                pathname += node.context().flow.get(node.filename).toString();
-            } else if (node.filenameType === 'global') {
-                pathname += node.context().global.get(node.filename).toString();
-            }
+            pathname += getProperty(node.filename, node.filenameType);
 
             var mode = fs.F_OK;
             if (node.read) mode |= fs.R_OK;
@@ -250,41 +177,15 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
-
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
-            }
-
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
                 pathname += path.sep;
             }
-
-            if (node.filenameType === 'str') {
-                pathname += node.filename;
-            } else if (node.filenameType === 'msg') {
-                pathname += RED.util.getMessageProperty(msg,node.filename).toString();
-            } else if (node.filenameType === 'flow') {
-                pathname += node.context().flow.get(node.filename).toString();
-            } else if (node.filenameType === 'global') {
-                pathname += node.context().global.get(node.filename).toString();
-            }
+            pathname += getProperty(node.filename, node.filenameType);
 
             var size = fs.statSync(pathname).size;
 
-            if (node.sizeType === 'msg') {
-                RED.util.setMessageProperty(msg,node.size, size);
-            } else if (node.sizeType === 'flow') {
-                node.context().flow.set(node.size, size);
-            } else if (node.sizeType === 'global') {
-                node.context().global.get(node.size, size);
-            }
+            setProperty(msg, node.size, node.sizeType, size);
 
             node.send(msg);
 
@@ -308,29 +209,13 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
-
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
+                pathname += path.sep;
             }
 
-            var filter = "*";
+            var filter = getProperty(node.filter, node.filterType);
 
-            if (node.filterType === 'str') {
-                filter = node.filter;
-            } else if (node.filterType === 'msg') {
-                filter = RED.util.getMessageProperty(msg,node.filter).toString();
-            } else if (node.filterType === 'flow') {
-                filter = node.context().flow.get(node.filter).toString();
-            } else if (node.filterType === 'global') {
-                filter = node.context().global.get(node.filter).toString();
-            }
 
             filter = filter.replace('.', '\\.');
             filter = filter.replace('*', '.*');
@@ -339,14 +224,7 @@ module.exports = function(RED) {
             var dir = fs.readdirSync(pathname);
             dir = dir.filter(function(value) { return filter.test(value); });
 
-            if (node.dirType === 'msg') {
-                RED.util.setMessageProperty(msg,node.dir, dir);
-            } else if (node.dirType === 'flow') {
-                node.context().flow.set(node.dir, dir);
-            } else if (node.dirType === 'global') {
-                node.context().global.get(node.dir, dir);
-            }
-
+            setProperty(msg, node.dir, node.dirType, dir);
 
             node.send(msg);
 
@@ -369,36 +247,17 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
 
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
-            }
-
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
                 pathname += path.sep;
             }
-
-            if (node.dirnameType === 'str') {
-                pathname += node.dirname;
-            } else if (node.dirnameType === 'msg') {
-                pathname += RED.util.getMessageProperty(msg,node.dirname).toString();
-            } else if (node.dirnameType === 'flow') {
-                pathname += node.context().flow.get(node.dirname).toString();
-            } else if (node.dirnameType === 'global') {
-                pathname += node.context().global.get(node.dirname).toString();
-            }
+            pathname += getProperty(node.dirname, node.dirnameType);
 
             fs.mkdirSync(pathname, node.mode);
 
             if (node.fullpath.length > 0) {
-                RED.util.setMessageProperty(msg, node.fullpath, pathname);
+                setProperty(msg, node.fullpath, node,fullpathType, pathname);
             }
 
             node.send(msg);
@@ -422,31 +281,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = "";
-
-            if (node.pathType === 'str') {
-                pathname = node.path;
-            } else if (node.pathType === 'msg') {
-                pathname = RED.util.getMessageProperty(msg,node.path).toString();
-            } else if (node.pathType === 'flow') {
-                pathname = node.context().flow.get(node.path).toString();
-            } else if (node.pathType === 'global') {
-                pathname = node.context().global.get(node.path).toString();
-            }
-
-            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+            var pathname = getProperty(node.path, node.pathType);
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != psthname.length-1)) {
                 pathname += path.sep;
             }
-
-            if (node.prefixType === 'str') {
-                pathname += node.prefix;
-            } else if (node.prefixType === 'msg') {
-                pathname += RED.util.getMessageProperty(msg,node.prefix).toString();
-            } else if (node.prefixType === 'flow') {
-                pathname += node.context().flow.get(node.prefix).toString();
-            } else if (node.prefixType === 'global') {
-                pathname += node.context().global.get(node.prefix).toString();
-            }
+            pathname += getProperty(node.prefix, node.prefixType);
 
             if (fs.mkdtempSync) {
                 pathname = fs.mkdtempSync(pathname, node.mode);
@@ -457,7 +296,7 @@ module.exports = function(RED) {
 
             }
 
-            RED.util.setMessageProperty(msg, node.fullpath, pathname);
+            setProperty(msg, node.fullpath, node,fullpathType, pathname);
 
             node.send(msg);
 

@@ -395,7 +395,8 @@
 	    dirname: {value: "", required: true},
             dirnameType: {value: "msg"},
             mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)},
-            fullpath: {value: ""}
+            fullpath: {value: "directory"},
+            fullpathType: {value: "msg"}
         },
         inputs:1,
         outputs:1,
@@ -422,6 +423,15 @@
                 typeField: $("#node-input-dirnameType")
             });
 
+            if (!this.fullpathType) {
+                this.fullpathType = 'msg';
+            }
+            $("#node-input-fullpath").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-fullpathType")
+            });
+
         }
     });
 </script>
@@ -442,19 +452,20 @@
         <input type="hidden" id="node-input-dirnameType">
     </div>
     <div class="form-row">
-        <label for="node-input-mode"><i class="icon-tag"></i> Access Mode</label>
+        <label for="node-input-mode"><i class="icon-lock"></i> Access Mode</label>
         <input type="text" id="node-input-mode" placeholder="Octal">
     </div>
     <div class="form-row">
-        <label for="node-input-fullpath"><i class="icon-tag"></i> Directory Property</label>
-        <input type="text" id="node-input-fullpath" placeholder="">
+        <label for="node-input-fullpath"><i class="fa fa-edit"></i> Directory Property</label>
+        <input type="text" id="node-input-fullpath" placeholder="Property to record directory name" style="width:250px;">
+        <input type="hidden" id="node-input-fullpathType">
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="fs-ops-mkdir">
     <p>Makes a directory on host filesystem.</p>
     <p>Message is actioned and passed through if successful.</p>
-    <p>Full pathname of new directory is added to the Directory message property if specified.</p>
+    <p>Full pathname of new directory is added to the Directory property if specified.</p>
 </script>
 
 <script type="text/javascript">
@@ -468,7 +479,8 @@
 	    prefix: {value: "", required: true},
             prefixType: {value: "msg"},
             mode: {value: "777", required: true, validate:RED.validators.regex(/[0-7][0-7][0-7]/)},
-            fullpath: {value: "", required: true}
+            fullpath: {value: "directory", required: true},
+            fullpathType: {value: "msg"},
         },
         inputs:1,
         outputs:1,
@@ -495,6 +507,15 @@
                 typeField: $("#node-input-prefixType")
             });
 
+            if (!this.fullpathType) {
+                this.fullpathType = 'msg';
+            }
+            $("#node-input-fullpath").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-fullpathType")
+            });
+
         }
     });
 </script>
@@ -515,12 +536,13 @@
         <input type="hidden" id="node-input-prefixType">
     </div>
     <div class="form-row">
-        <label for="node-input-mode"><i class="icon-tag"></i> Access Mode</label>
+        <label for="node-input-mode"><i class="icon-lock"></i> Access Mode</label>
         <input type="text" id="node-input-mode" placeholder="Octal">
     </div>
     <div class="form-row">
-        <label for="node-input-fullpath"><i class="icon-tag"></i> Directory Property</label>
-        <input type="text" id="node-input-fullpath" placeholder="">
+        <label for="node-input-fullpath"><i class="fa fa-edit"></i> Directory Property</label>
+        <input type="text" id="node-input-fullpath" placeholder="Property to record directory name" style="width:250px;">
+        <input type="hidden" id="node-input-fullpathType">
     </div>
 </script>
 
@@ -528,5 +550,5 @@
     <p>Creates a new temporary directory on host filesystem.</p>
     <p>New directory name will be prefix with six random characters appended.</p>
     <p>Message is actioned and passed through if successful.</p>
-    <p>Full pathname of new directory is added to the Directory message property.</p>
+    <p>Full pathname of new directory is added to the Directory property.</p>
 </script>
