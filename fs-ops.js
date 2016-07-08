@@ -72,7 +72,7 @@ module.exports = function(RED) {
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
-            source += getProperty(node, node.sourceFilename, node.sourceFilenameType);
+            source += getProperty(node, msg, node.sourceFilename, node.sourceFilenameType);
 
             var dest = getProperty(node, msg, node.destPath, node.destPathType);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
