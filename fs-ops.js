@@ -146,6 +146,7 @@ module.exports = function(RED) {
         node.filenameType = n.filenameType || "str";
         node.read = n.read;
         node.write = n.write;
+        node.error = n.error;
 
         node.on("input", function(msg) {
 
@@ -162,11 +163,15 @@ module.exports = function(RED) {
             try {
                 fs.accessSync(pathname, mode);
             } catch (e) {
-                node.error("File " + pathname + " is not accessible " + e, msg);
+                if (node.error) node.error("File " + pathname + " is not accessible " + e, msg);
+                if (msg.error) msg._error = Object.assign({}, msg.error);
+                msg.error = {message: "File " + pathname + " is not accessible " + e};
+                msg.error.source = {id: node.id, type: node.type, name: node.name};
+                node.send([null, msg]);
                 return null;
             }
 
-            node.send(msg);
+            node.send([msg, null]);
 
         });
     }
