@@ -136,7 +136,6 @@ module.exports = function(RED) {
         node.error = n.error;
 
         node.on("input", function(msg) {
-try {
             var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
@@ -146,7 +145,7 @@ try {
             var mode = fs.F_OK;
             if (node.read) mode |= fs.R_OK;
             if (node.write) mode |= fs.W_OK;
-} catch (e) {console.log(e);}
+
             try {
                 fs.accessSync(pathname, mode);
             } catch (e) {
