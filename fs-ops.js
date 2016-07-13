@@ -28,19 +28,6 @@ const path = require('path');
 module.exports = function(RED) {
     "use strict";
 
-    function getProperty(node, msg, name, type) {
-        if (type === 'str') {
-            return name;
-        } else if (type === 'msg') {
-            return RED.util.getMessageProperty(msg,name).toString();
-        } else if (type === 'flow') {
-            return node.context().flow.get(name).toString();
-        } else if (type === 'global') {
-            return node.context().global.get(name).toString();
-        } else {
-            return undefined;
-        }
-    }
 
     function setProperty(node, msg, name, type, value) {
         if (type === 'msg') {
@@ -68,11 +55,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var source = getProperty(node, msg, node.sourcePath, node.sourcePathType);
+            var source = evaluateNodeProperty(node.sourcePath, node.sourcePathType, node, msg);
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
-            source += getProperty(node, msg, node.sourceFilename, node.sourceFilenameType);
+            source += evaluateNodeProperty(node.sourceFilename, node.sourceFlenameType, node, msg);
 
             var dest = getProperty(node, msg, node.destPath, node.destPathType);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
@@ -101,11 +88,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node, msg, node.filename, node.filenameType);
+            pathname += evaluateNodeProperty(node.sourceFilename, node.sourceFilenameType, node, msg);
 
             try {
                 fs.unlinkSync(pathname);
@@ -150,11 +137,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node, msg, node.filename, node.filenameType);
+            pathname += evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
             var mode = fs.F_OK;
             if (node.read) mode |= fs.R_OK;
@@ -193,11 +180,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node, msg, node.filename, node.filenameType);
+            pathname += evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
             var size = fs.statSync(pathname).size;
 
@@ -225,12 +212,12 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
 
-            var filter = getProperty(node, msg, node.filter, node.filterType);
+            var filter = evaluateNodeProperty(node.filter, node.filterType, node, msg);
 
 
             filter = filter.replace('.', '\\.');
@@ -265,7 +252,7 @@ module.exports = function(RED) {
         node.on("input", function(msg) {
 
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
@@ -309,11 +296,11 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
-            var pathname = getProperty(node, msg, node.path, node.pathType);
+            var pathname = evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node, msg, node.prefix, node.prefixType);
+            pathname += evaluateNodeProperty(node.prefix, node.prefixType, node, msg);
 
             if (fs.mkdtempSync) {
                 pathname = fs.mkdtempSync(pathname, node.mode);
