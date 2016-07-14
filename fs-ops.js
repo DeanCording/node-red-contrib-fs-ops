@@ -61,11 +61,11 @@ module.exports = function(RED) {
             }
             source += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFlenameType, node, msg);
 
-            var dest = getProperty(node, msg, node.destPath, node.destPathType);
+            var dest = RED.util.evaluateNodeProperty(node.destPath, node.destPathType, node, msg);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
                 dest += path.sep;
             }
-            dest += getProperty(node, msg, node.destFilename, node.destFilenameType);
+            dest += RED.util.evaluateNodeProperty(node.destFilename, node.destFilenameType, node, msg);
 
             fs.renameSync(source, dest);
 
@@ -255,7 +255,7 @@ module.exports = function(RED) {
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += getProperty(node, msg, node.dirname, node.dirnameType);
+            pathname += RED.util.evaluateNodeProperty(node.dirname, node.dirnameType, node, msg);
 
             try {
                 fs.mkdirSync(pathname, node.mode);
