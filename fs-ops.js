@@ -59,7 +59,7 @@ module.exports = function(RED) {
             if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
                 source += path.sep;
             }
-            source += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFlenameType, node, msg);
+            source += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFilenameType, node, msg);
 
             var dest = RED.util.evaluateNodeProperty(node.destPath, node.destPathType, node, msg);
             if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
