@@ -11,7 +11,8 @@
             destPath: {value: "", required: true},
             destPathType: {value: "str"},
             destFilename: {value: "", required: true},
-            destFilenameType: {value: "msg"}
+            destFilenameType: {value: "msg"},
+            link: {value:"false"}
         },
         inputs:1,
         outputs:1,
@@ -85,10 +86,18 @@
         <input type="text" id="node-input-destFilename" placeholder="New filename" style="width:250px;">
         <input type="hidden" id="node-input-destFilenameType">
     </div>
+    <div class="form-row">
+        <label for="node-input-link"><i class="fa fa-link"></i> Link Files</label>
+        <input type="checkbox" checked value="true" id="node-input-link" style="display: inline-block; width: auto; vertical-align: top;"/>
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="fs-ops-move">
-    <p>Moves a file from the source to the destination.</p>
+    <p>Moves, renames or links a file from the source to the destination.</p>
+    <p>Specified file is moved from the source path to the destination path and
+    renamed from the source filename to the destination filename.</p>
+    <p>If Link is set, destination file will be a symbolic link to the source file.</p>
     <p>Message is actioned and passed through unchanged if move/rename is successful.</p>
 </script>
 
@@ -197,6 +206,95 @@
         }
     });
 </script>
+
+
+
+<script type="text/x-red" data-template-name="fs-ops-access">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path of file to test" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
+        <input type="text" id="node-input-filename" placeholder="File to test" style="width:250px;">
+        <input type="hidden" id="node-input-filenameType">
+    </div>
+    <div class="form-row">
+        <label for="access"><i class="fa fa-lock"></i> Access</label>
+        <input type="checkbox" checked value="true" id="node-input-read" style="display: inline-block; width: auto; vertical-align: top;"/>
+        <label for="node-input-read" style="width: 30%;"> Read</label>
+        <input type="checkbox" checked value="true" id="node-input-write" style="display: inline-block; width: auto; vertical-align: top;"/>
+        <label for="node-input-write" style="width: 30%;"> Write</label>
+    </div>
+    <div class="form-row">
+        <label for="node-input-error"><i class="fa fa-exclamation-triangle"></i> Throw Error</label>
+        <input type="checkbox" checked value="true" id="node-input-error" style="display: inline-block; width: auto; vertical-align: top;"/>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-access">
+    <p>Tests if a file is accessible on the host filesystem.</p>
+    <p>Message is actioned and passed through output 1 unchanged if the file is accessible
+    or output 2 with error if not accesible. Error is also optionally thrown which can trigger a Catch node.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-size',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: ""},
+            pathType: {value: "str"},
+	    filename: {value: "", required: true},
+            filenameType: {value: "msg"},
+	    size: {value: "filesize", required: true},
+            sizeType: {value: "msg"}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"File Size";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.filenameType) {
+                this.filenameType = 'msg';
+            }
+            $("#node-input-filename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-filenameType")
+            });
+
+            if (!this.sizeType) {
+                this.sizeType = 'msg';
+            }
+            $("#node-input-size").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-sizeType")
+            });
+
+        }
+    });
+</script>
+
+
 
 <script type="text/x-red" data-template-name="fs-ops-access">
     <div class="form-row">
@@ -307,9 +405,10 @@
 
 <script type="text/x-red" data-help-name="fs-ops-size">
     <p>Determines the size of a file on host filesystem.</p>
-    <p>File names are returned as a array in the specified property. Error is thrown and message
+    <p>File size is returned in the specified property. Error is thrown and message
     dropped if size cannot be determined.</p>
 </script>
+
 
 <script type="text/javascript">
     RED.nodes.registerType('fs-ops-dir',{

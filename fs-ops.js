@@ -52,6 +52,9 @@ module.exports = function(RED) {
         node.destPathType = n.destPathType || "str";
         node.destFilename = n.destFilename || "";
         node.destFilenameType = n.destFilenameType || "str";
+        node.link = n.link;
+
+        if (node.link === undefined) node.link = false;
 
         node.on("input", function(msg) {
 
@@ -67,7 +70,11 @@ module.exports = function(RED) {
             }
             dest += RED.util.evaluateNodeProperty(node.destFilename, node.destFilenameType, node, msg);
 
-            fs.renameSync(source, dest);
+            if (node.link) {
+                fs.symlinkSync(source,dest);
+            } else {
+                fs.renameSync(source, dest);
+            }
 
             node.send(msg);
 
