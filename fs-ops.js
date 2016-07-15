@@ -92,7 +92,7 @@ module.exports = function(RED) {
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFilenameType, node, msg);
+            pathname += RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
             try {
                 fs.unlinkSync(pathname);
