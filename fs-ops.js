@@ -104,18 +104,18 @@ module.exports = function(RED) {
             try {
                 fs.unlinkSync(pathname);
             } catch (e) {
-                if (e.errno == EISDIR) {
+                if (e.code === 'EISDIR') {
                     // rmdir instead
                     try {
                         fs.rmdirSync(pathname);
                     } catch (ed) {
-                        if (ed.errno != -2) {
+                        if (ed.code != 'ENOENT') {
                             // deleting non-existent directory is OK
                             node.error(ed, msg);
                             return null;
                         }
                     }
-                } else if (e.errno != ENOENT) {
+                } else if (e.code != 'ENOENT') {
                     // Deleting a non-existent file is not an error
                     node.error(e, msg);
                     return null;
@@ -196,7 +196,7 @@ module.exports = function(RED) {
 
             var size;
 
-            if (Array.isArray(filename) {
+            if (Array.isArray(filename)) {
                 size = [];
                 filename.forEach(function(file) {
                     size.push(fs.statSync(pathname + file).size);
@@ -239,13 +239,13 @@ module.exports = function(RED) {
 
             var link;
 
-            if (Array.isArray(filename) {
+            if (Array.isArray(filename)) {
                 link = [];
                 filename.forEach(function(file) {
                     try {
                         link.push(fs.readlinkSync(pathname + file));
                     } catch (e) {
-                        if (e.errno == EINVAL) {
+                        if (e.code === 'EINVAL') {
                             link.push('');
                         } else {
                             node.error(e, msg);
@@ -256,18 +256,17 @@ module.exports = function(RED) {
             } else {
                 try {
                     link = fs.statSync(pathname + filename).size;
-                    } catch (e) {
-                        if (e.errno == EINVAL) {
-                            link = '';
-                        } else {
-                            node.error(e, msg);
-                            return null;
-                        }
+                } catch (e) {
+                    if (e.code === 'EINVAL') {
+                        link = '';
+                    } else {
+                        node.error(e, msg);
+                        return null;
                     }
                 }
             }
 
-            setProperty(node, msg, node.link, node.sizeType, link);
+            setProperty(node, msg, node.link, node.linkType, link);
 
             node.send(msg);
 
@@ -275,8 +274,6 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-link", LinkNode);
-
-
 
 
     function DirNode(n) {
@@ -343,7 +340,7 @@ module.exports = function(RED) {
                 fs.mkdirSync(pathname, node.mode);
             } catch (e) {
                 // Creating an existing directory is not an error
-                if (e.errno != EEXIST) {
+                if (e.code != 'EEXIST') {
                     node.error(e, msg);
                     return null;
                 }
