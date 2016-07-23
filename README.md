@@ -12,6 +12,7 @@ The nodes and functions provided are:
   * fs-ops-dir - Get array of file and directory names in a directory
   * fs-ops-mkdir - Make a new directory
   * fs-ops-mktmpdir - Make a new directory with a random unique name
+  * fs-ops-file in - uncompress with zlib a file to a string
 
 Parameters such as path and filename can be sourced from strings, or message, flow, or global property.  Likewise, results can be stored in a message, flow or global property.
 
