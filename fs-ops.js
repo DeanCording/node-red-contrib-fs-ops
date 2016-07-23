@@ -104,18 +104,18 @@ module.exports = function(RED) {
             try {
                 fs.unlinkSync(pathname);
             } catch (e) {
-                if (e.errno == -21) {
+                if (e.errno == EISDIR) {
                     // rmdir instead
                     try {
                         fs.rmdirSync(pathname);
                     } catch (ed) {
                         if (ed.errno != -2) {
-                            // deleting non-existant directory is OK
+                            // deleting non-existent directory is OK
                             node.error(ed, msg);
                             return null;
                         }
                     }
-                } else if (e.errno != -2) {
+                } else if (e.errno != ENOENT) {
                     // Deleting a non-existent file is not an error
                     node.error(e, msg);
                     return null;
@@ -140,7 +140,7 @@ module.exports = function(RED) {
         node.filenameType = n.filenameType || "str";
         node.read = n.read;
         node.write = n.write;
-        node.error = n.error;
+        node.throwerror = n.throwerror;
 
         node.on("input", function(msg) {
             var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
@@ -156,7 +156,7 @@ module.exports = function(RED) {
             try {
                 fs.accessSync(pathname, mode);
             } catch (e) {
-                if (node.error) node.error("File " + pathname + " is not accessible " + e, msg);
+                if (node.throwerror) node.error("File " + pathname + " is not accessible " + e, msg);
                 if (msg.error) msg._error = Object.assign({}, msg.error);
                 msg.error = {message: "File " + pathname + " is not accessible " + e};
                 msg.error.source = {id: node.id, type: node.type, name: node.name};
@@ -187,12 +187,23 @@ module.exports = function(RED) {
         node.on("input", function(msg) {
 
             var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
+
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            var size = fs.statSync(pathname).size;
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+
+            var size;
+
+            if (Array.isArray(filename) {
+                size = [];
+                filename.forEach(function(file) {
+                    size.push(fs.statSync(pathname + file).size);
+                });
+            } else {
+                size = fs.statSync(pathname + filename).size;
+            }
 
             setProperty(node, msg, node.size, node.sizeType, size);
 
@@ -202,6 +213,70 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-size", SizeNode);
+
+
+    function LinkNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "msg";
+        node.link = n.link || "";
+        node.linkType = n.linkType || "msg";
+
+        node.on("input", function(msg) {
+
+            var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+
+            var link;
+
+            if (Array.isArray(filename) {
+                link = [];
+                filename.forEach(function(file) {
+                    try {
+                        link.push(fs.readlinkSync(pathname + file));
+                    } catch (e) {
+                        if (e.errno == EINVAL) {
+                            link.push('');
+                        } else {
+                            node.error(e, msg);
+                            return null;
+                        }
+                    }
+                });
+            } else {
+                try {
+                    link = fs.statSync(pathname + filename).size;
+                    } catch (e) {
+                        if (e.errno == EINVAL) {
+                            link = '';
+                        } else {
+                            node.error(e, msg);
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            setProperty(node, msg, node.link, node.sizeType, link);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-link", LinkNode);
+
+
 
 
     function DirNode(n) {
@@ -268,7 +343,7 @@ module.exports = function(RED) {
                 fs.mkdirSync(pathname, node.mode);
             } catch (e) {
                 // Creating an existing directory is not an error
-                if (e.errno != -17) {
+                if (e.errno != EEXIST) {
                     node.error(e, msg);
                     return null;
                 }
@@ -327,3 +402,4 @@ module.exports = function(RED) {
     RED.nodes.registerType("fs-ops-mktmpdir", MktmpdirNode);
 
 }
+
