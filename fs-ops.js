@@ -255,7 +255,7 @@ module.exports = function(RED) {
                 });
             } else {
                 try {
-                    link = fs.statSync(pathname + filename).size;
+                    link = fs.readlinkSync(pathname + filename);
                 } catch (e) {
                     if (e.code === 'EINVAL') {
                         link = '';
@@ -274,6 +274,57 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("fs-ops-link", LinkNode);
+
+
+    function TypeNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "msg";
+        node.type = n.type || "";
+        node.typeType = n.typeType || "msg";
+
+        function getType(type) {
+            if (type.isFile()) return 'F';
+            if (type.isDirectory()) return 'D';
+            if (type.isCharacterDevice()) return 'C';
+            return 'S';
+        }
+
+        node.on("input", function(msg) {
+
+            var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+
+            var type;
+
+            if (Array.isArray(filename)) {
+                type = [];
+                filename.forEach(function(file) {
+                    type.push(getType(fs.statSync(pathname + file)));
+                });
+            } else {
+                type = getType(fs.lstatSync(pathname + filename));
+            }
+
+            setProperty(node, msg, node.type, node.typeType, type);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-type", TypeNode);
+
 
 
     function DirNode(n) {

@@ -327,7 +327,6 @@
 </script>
 
 
-
 <script type="text/javascript">
     RED.nodes.registerType('fs-ops-link',{
         category: 'storage',
@@ -409,6 +408,93 @@
     <p>Error is thrown and message dropped if link cannot be determined.</p>
 </script>
 
+
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-type',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: ""},
+            pathType: {value: "str"},
+	    filename: {value: "", required: true},
+            filenameType: {value: "msg"},
+	    type: {value: "type", required: true},
+            typeType: {value: "msg"}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"Get Type";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.filenameType) {
+                this.filenameType = 'msg';
+            }
+            $("#node-input-filename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-filenameType")
+            });
+
+            if (!this.typeType) {
+                this.typeType = 'msg';
+            }
+            $("#node-input-type").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-typeType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-type">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
+        <input type="text" id="node-input-filename" placeholder="Filename" style="width:250px;">
+        <input type="hidden" id="node-input-filenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-type"><i class="fa fa-edit"></i> Type Property</label>
+        <input type="text" id="node-input-type" placeholder="Property to record type" style="width:250px;">
+        <input type="hidden" id="node-input-typeType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-type">
+    <p>Determines the type of a file on host filesystem.</p>
+    <p>File type is added in the specified property. If passed an array of
+    filenames, like from fs-ops-dir, node will add an array of corresponding
+    file types.</p>
+    <p>Types are:
+    <ul><li>F - Regular file</li>
+    <li>D - Directory</li>
+    <li>C - Character device</li>
+    <li>S - Special file</li>
+    </ul></p>
+    <p>Error is thrown and message dropped if type cannot be determined.</p>
+</script>
 
 
 <script type="text/javascript">
