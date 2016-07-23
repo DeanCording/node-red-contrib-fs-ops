@@ -12,7 +12,7 @@
             destPathType: {value: "str"},
             destFilename: {value: "", required: true},
             destFilenameType: {value: "msg"},
-            link: {value:"false"}
+            link: {value:false}
         },
         inputs:1,
         outputs:1,
@@ -88,7 +88,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-link"><i class="fa fa-link"></i> Link Files</label>
-        <input type="checkbox" checked value="true" id="node-input-link" style="display: inline-block; width: auto; vertical-align: top;"/>
+        <input type="checkbox" value="false" id="node-input-link" style="display: inline-block; width: auto; vertical-align: top;"/>
     </div>
 
 </script>
@@ -97,7 +97,7 @@
     <p>Moves, renames or links a file from the source to the destination.</p>
     <p>Specified file is moved from the source path to the destination path and
     renamed from the source filename to the destination filename.</p>
-    <p>If Link is set, destination file will be a symbolic link to the source file.</p>
+    <p>If <i>Link Files</i> is set, destination file will be a symbolic link to the source file.</p>
     <p>Message is actioned and passed through unchanged if move/rename is successful.</p>
 </script>
 
