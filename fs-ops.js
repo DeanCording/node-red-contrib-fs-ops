@@ -23,6 +23,8 @@
 const util = require('util');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
+const os = require('os');
 
 
 module.exports = function(RED) {
@@ -449,5 +451,47 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("fs-ops-mktmpdir", MktmpdirNode);
 
-}
+    function FileInNode(n) {
+        RED.nodes.createNode(this,n);
 
+        this.filename = n.filename;
+        this.format = n.format;
+        var node = this;
+        var options = {};
+        if (this.format) {
+            options['defaultEncoding'] = this.format;
+        }
+        this.on("input",function(msg) {
+            var filename = node.filename || msg.filename || "";
+            if (!node.filename) {
+                node.status({fill:"grey",shape:"dot",text:filename});
+            }
+            if (filename === "") {
+                node.warn(RED._("file.errors.nofilename"));
+            } else {
+                msg.filename = filename;
+		var gunzip = zlib.createGunzip();
+		var inStream = fs.createReadStream(filename);
+		var tmpfile = os.tmpdir()+path.sep+Math.ceil(Math.random()*10e+10)+".txt";
+		var outStream = fs.createWriteStream(tmpfile,options);   
+		inStream.pipe(gunzip).pipe(outStream);              
+
+		outStream.on('finish', function() {
+                        // read back the file                        
+                        msg.payload = fs.readFileSync(tmpfile).toString();
+                        fs.unlinkSync(tmpfile);
+                        delete msg.error;
+			node.send(msg);
+		});
+		
+		outStream.on('error', function(err) {
+                        delete msg.payload;
+                        msg.error=err;
+			node.error(err,msg);
+			node.send(msg);
+		});
+	    }
+        });
+    }
+    RED.nodes.registerType("fs-ops-file in",FileInNode);
+}
