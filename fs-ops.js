@@ -285,13 +285,13 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.filename = n.filename || "";
         node.filenameType = n.filenameType || "msg";
-        node.type = n.type || "";
-        node.typeType = n.typeType || "msg";
+        node.filetype = n.filetype || "";
+        node.filetypeType = n.filetypeType || "msg";
 
-        function getType(type) {
-            if (type.isFile()) return 'F';
-            if (type.isDirectory()) return 'D';
-            if (type.isCharacterDevice()) return 'C';
+        function getType(filetype) {
+            if (filetype.isFile()) return 'F';
+            if (filetype.isDirectory()) return 'D';
+            if (filetype.isCharacterDevice()) return 'C';
             return 'S';
         }
 
@@ -305,18 +305,18 @@ module.exports = function(RED) {
 
             var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            var type;
+            var filetype;
 
             if (Array.isArray(filename)) {
-                type = [];
+                filetype = [];
                 filename.forEach(function(file) {
-                    type.push(getType(fs.statSync(pathname + file)));
+                    filetype.push(getType(fs.statSync(pathname + file)));
                 });
             } else {
-                type = getType(fs.lstatSync(pathname + filename));
+                filetype = getType(fs.lstatSync(pathname + filename));
             }
 
-            setProperty(node, msg, node.type, node.typeType, type);
+            setProperty(node, msg, node.filetype, node.filetypeType, filetype);
 
             node.send(msg);
 

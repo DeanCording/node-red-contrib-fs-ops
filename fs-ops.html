@@ -419,8 +419,8 @@
             pathType: {value: "str"},
 	    filename: {value: "", required: true},
             filenameType: {value: "msg"},
-	    type: {value: "type", required: true},
-            typeType: {value: "msg"}
+	    filetype: {value: "type", required: true},
+            filetypeType: {value: "msg"}
         },
         inputs:1,
         outputs:1,
@@ -447,8 +447,8 @@
                 typeField: $("#node-input-filenameType")
             });
 
-            if (!this.typeType) {
-                this.typeType = 'msg';
+            if (!this.filetypeType) {
+                this.filetypeType = 'msg';
             }
             $("#node-input-type").typedInput({
                 default: 'msg',
@@ -476,9 +476,9 @@
         <input type="hidden" id="node-input-filenameType">
     </div>
     <div class="form-row">
-        <label for="node-input-type"><i class="fa fa-edit"></i> Type Property</label>
-        <input type="text" id="node-input-type" placeholder="Property to record type" style="width:250px;">
-        <input type="hidden" id="node-input-typeType">
+        <label for="node-input-filetype"><i class="fa fa-edit"></i> Type Property</label>
+        <input type="text" id="node-input-filetype" placeholder="Property to record type" style="width:250px;">
+        <input type="hidden" id="node-input-filetypeType">
     </div>
 </script>
 
