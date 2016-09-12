@@ -84,13 +84,13 @@ module.exports = function(RED) {
                     if (e.code === 'EXDEV') {
                         // Cross devices move - need to copy and delete
                         try {
-                            fs.access(source, fs.constants.R_OK | fs.constants.W_OK);
-                            fs.access(dest, fs.constants.W_OK);
+                            fs.access(source, fs.R_OK | fs.W_OK);
+                            fs.access(dest, fs.W_OK);
                             var is = fs.createReadStream(source);
                             var os = fs.createWriteStream(dest);
 
                             is.pipe(os);
-                            is.on('end',function() {
+                            is.on('end', () => {
                                 try {
                                     fs.unlinkSync(source);
                                 } catch (e) {
