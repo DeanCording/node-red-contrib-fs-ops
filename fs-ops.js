@@ -84,6 +84,8 @@ module.exports = function(RED) {
                     if (e.code === 'EXDEV') {
                         // Cross devices move - need to copy and delete
                         try {
+                            fs.access(source, fs.constants.R_OK | fs.constants.W_OK);
+                            fs.access(dest, fs.constants.W_OK);
                             var is = fs.createReadStream(source);
                             var os = fs.createWriteStream(dest);
 
@@ -91,11 +93,11 @@ module.exports = function(RED) {
                             is.on('end',function() {
                                 try {
                                     fs.unlinkSync(source);
-                                    node.send(msg);
                                 } catch (e) {
                                     node.error(e, msg);
                                     return;
                                 }
+                                node.send(msg);
                             });
 
                             return;
