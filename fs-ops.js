@@ -89,8 +89,13 @@ module.exports = function(RED) {
 
                             is.pipe(os);
                             is.on('end',function() {
-                                fs.unlinkSync(source);
-                                node.send(msg);
+                                try {
+                                    fs.unlinkSync(source);
+                                    node.send(msg);
+                                } catch (e) {
+                                    node.error(e, msg);
+                                    return;
+                                }
                             });
 
                             return;
