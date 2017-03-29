@@ -64,22 +64,23 @@ module.exports = function(RED) {
             }
             source += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFilenameType, node, msg);
 
-            var dest = RED.util.evaluateNodeProperty(node.destPath, node.destPathType, node, msg);
-            if ((dest.length > 0) && (dest.lastIndexOf(path.sep) != dest.length-1)) {
-                dest += path.sep;
+            var destPath = RED.util.evaluateNodeProperty(node.destPath, node.destPathType, node, msg);
+            var destFile = destPath;
+            if ((destFile.length > 0) && (destFile.lastIndexOf(path.sep) != destFile.length-1)) {
+                destFile += path.sep;
             }
-            dest += RED.util.evaluateNodeProperty(node.destFilename, node.destFilenameType, node, msg);
+            destFile += RED.util.evaluateNodeProperty(node.destFilename, node.destFilenameType, node, msg);
 
             if (node.link) {
                 try {
-                    fs.symlinkSync(source,dest);
+                    fs.symlinkSync(source,destFile);
                 } catch (e) {
                     node.error(e, msg);
                     return;
                 }
             } else {
                 try {
-                    fs.renameSync(source, dest);
+                    fs.renameSync(source, destFile);
                 } catch (e) {
                     if (e.code === 'EXDEV') {
                         // Cross devices move - need to copy and delete
@@ -87,9 +88,9 @@ module.exports = function(RED) {
                             // fs.pipe doesn't seem to handle exceptions properly
                             // Need to check we can access files
                             fs.accessSync(source, fs.R_OK | fs.W_OK);
-                            fs.accessSync(dest, fs.W_OK);
+                            fs.accessSync(destPath, fs.W_OK);
                             var is = fs.createReadStream(source);
-                            var os = fs.createWriteStream(dest);
+                            var os = fs.createWriteStream(destFile);
                             is.on('end', function() {
                                 try {
                                     fs.unlinkSync(source);
