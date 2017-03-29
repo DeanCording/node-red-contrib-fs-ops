@@ -743,3 +743,51 @@
     <p>Message is actioned and passed through if successful.</p>
     <p>Full pathname of new directory is added to the Directory property.</p>
 </script>
+
+<script type="text/x-red" data-help-name="fs-ops-file in">
+    <p>Reads the specified gz compressed file and sends the content as <code>msg.payload</code>,
+    and the filename as <code>msg.filename</code>.</p>
+    <p>The filename can be configured in the node. If left blank it should be
+    set by <code>msg.filename</code> on the incoming message.</p>
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-file in">
+    <div class="form-row">
+        <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
+        <input type="text" id="node-input-filename" placeholder="Filename" style="width:250px;">
+     </div>
+    <div class="form-row">
+        <label for="node-input-format"><i class="fa fa-sign-out"></i> Outputas</label>
+        <select id="node-input-format">
+            <option value="utf8" >utf8</option>
+            <option value="" >buffer</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> name</label>
+        <input type="text" id="node-input-name" placeholder="name">
+    </div>
+</script>
+
+<script type="text/javascript">
+
+   RED.nodes.registerType('fs-ops-file in',{
+        category: 'storage-input',
+        defaults: {
+            name: {value:""},
+            filename: {value:""},
+            format: {value:"utf8"},
+        },
+        color:"#767432",
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||this.filename||"fs-ops-file in";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+
+</script>
