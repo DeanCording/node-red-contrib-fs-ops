@@ -139,28 +139,58 @@ module.exports = function(RED) {
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+            
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            try {
-                fs.unlinkSync(pathname);
-            } catch (e) {
-                if (e.code === 'EISDIR') {
-                    // rmdir instead
-                    try {
-                        fs.rmdirSync(pathname);
-                    } catch (ed) {
-                        if (ed.code != 'ENOENT') {
-                            // deleting non-existent directory is OK
-                            node.error(ed, msg);
-                            return;
+            fs.readdir(node.path, function(error, files) {
+                if (error) {
+                    if (error.code === 'EISDIR') {
+                        // remove directory instead
+                        try {
+                            fs.rmdirSync(pathname);
+                        } catch (ed) {
+                            if (ed.code != 'ENOENT') {
+                                // deleting non-existent directory is OK
+                                node.error(ed, msg);
+                            }
                         }
                     }
-                } else if (e.code != 'ENOENT') {
-                    // Deleting a non-existent file is not an error
-                    node.error(e, msg);
+                    else if (error.code != 'ENOENT') {
+                        // deleting non-existent directory is OK
+                        node.error(error, msg);
+                    }
+                    
                     return;
                 }
-            }
+                
+                var regExp = new RegExp(filename);
+                
+                // remove all the specified files in the directory
+                for( var i=0; i<files.length; i++ ) { 
+                    if (regExp.test(files[i])) {
+                        try {
+                            fs.unlinkSync(pathname + files[i]);
+                        } catch (e) {
+                            if (e.code === 'EISDIR') {
+                                // rmdir instead
+                                try {
+                                    fs.rmdirSync(pathname + files[i]);
+                                } catch (ed) {
+                                    if (ed.code != 'ENOENT') {
+                                        // deleting non-existent directory is OK
+                                        node.error(ed, msg);
+                                        return;
+                                    }
+                                }
+                            } else if (e.code != 'ENOENT') {
+                                // Deleting a non-existent file is not an error
+                                node.error(e, msg);
+                                return;
+                            }
+                        }
+                    } 
+                }
+            });
 
             node.send(msg);
 
@@ -510,4 +540,3 @@ module.exports = function(RED) {
     RED.nodes.registerType("fs-ops-mktmpdir", MktmpdirNode);
 
 }
-
