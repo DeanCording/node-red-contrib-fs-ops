@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Dean Cording <dean@cording.id.au>
+ * Copyright 2018 Dean Cording <dean@cording.id.au>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,11 +73,34 @@ module.exports = function(RED) {
 
             if (node.link) {
                 try {
-                    fs.symlinkSync(source,destFile);
-                } catch (e) {
-                    node.error(e, msg);
-                    return;
+                    fs.unlinkSync(destFile);
+                } catch (err) {
+                    if (err.code === 'EISDIR') {
+                        // rmdir instead
+                        try {
+                            fs.rmdirSync(pathname);
+                        } catch (ed) {
+                            if (ed.code != 'ENOENT') {
+                                // deleting non-existent directory is OK
+                                node.error(ed, msg);
+                                return;
+                            }
+                        }
+                    } else if (err.code != 'ENOENT') {
+                        // Deleting a non-existent file is not an error
+                        node.error(e, msg);
+                        return;
+                    }
                 }
+
+                fs.symlink(source,destFile, (err) => {
+                    if (err) {
+                        node.error(err, msg);
+                    } else {
+                        node.send(msg);
+                    }
+                });
+                return;
             } else {
                 try {
                     fs.renameSync(source, destFile);
@@ -114,14 +137,132 @@ module.exports = function(RED) {
                         return;
                     }
                 }
+                node.send(msg);
             }
 
-            node.send(msg);
 
         });
     }
 
     RED.nodes.registerType("fs-ops-move", MoveNode);
+
+
+
+    function CopyNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.sourcePath = n.sourcePath || "";
+        node.sourcePathType = n.sourcePathType || "str";
+        node.sourceFilename = n.sourceFilename || "";
+        node.sourceFilenameType = n.sourceFilenameType || "str";
+        node.destPath = n.destPath || "";
+        node.destPathType = n.destPathType || "str";
+        node.destFilename = n.destFilename || "";
+        node.destFilenameType = n.destFilenameType || "str";
+        node.link = n.link;
+        node.overwrite = n.overwrite;
+
+        if (node.link === undefined) node.link = false;
+        if (node.overwrite === undefined) node.overwrite = false;
+
+        node.on("input", function(msg) {
+
+            var source = RED.util.evaluateNodeProperty(node.sourcePath, node.sourcePathType, node, msg);
+            if ((source.length > 0) && (source.lastIndexOf(path.sep) != source.length-1)) {
+                source += path.sep;
+            }
+            source += RED.util.evaluateNodeProperty(node.sourceFilename, node.sourceFilenameType, node, msg);
+
+            var destPath = RED.util.evaluateNodeProperty(node.destPath, node.destPathType, node, msg);
+            var destFile = destPath;
+            if ((destFile.length > 0) && (destFile.lastIndexOf(path.sep) != destFile.length-1)) {
+                destFile += path.sep;
+            }
+            destFile += RED.util.evaluateNodeProperty(node.destFilename, node.destFilenameType, node, msg);
+
+            if (node.link) {
+                if (node.overwrite) {
+                    try {
+                        fs.unlinkSync(destFile);
+                    } catch (err) {
+                        if (err.code === 'EISDIR') {
+                            // rmdir instead
+                            try {
+                                fs.rmdirSync(pathname);
+                            } catch (ed) {
+                                if (ed.code != 'ENOENT') {
+                                    // deleting non-existent directory is OK
+                                    node.error(ed, msg);
+                                    return;
+                                }
+                            }
+                        } else if (err.code != 'ENOENT') {
+                            // Deleting a non-existent file is not an error
+                            node.error(e, msg);
+                            return;
+                        }
+                    }
+                }
+
+
+                fs.symlink(source,destFile, (err) => {
+                    if (err) {
+                        node.error(err, msg);
+                    } else {
+                        node.send(msg);
+                    }
+                });
+            } else {
+                if (fs.copyFile) {
+                    // fs.copyFile introduced in Node 8.5.0
+                    fs.copyFile(source, destFile, (node.overwrite ? 0 : fs.constants.COPYFILE_EXCL), (err) => {
+                        if (err) {
+                            node.error(err, msg);
+                        } else {
+                            node.send(msg);
+                        }
+                    });
+                } else {
+                    if (!node.overwrite) {
+                        try {
+                            fs.accessSync(destFile, fs.F_OK);
+                            node.error("File exists", msg);
+                            return;
+                        } catch(e) {
+                            // All good - file doesn't exist
+                        }
+                    }
+
+
+                    try {
+                        // is.pipe doesn't seem to handle exceptions properly
+                        // Need to check we can access files
+                        fs.accessSync(source, fs.R_OK);
+                        fs.accessSync(destPath, fs.W_OK);
+
+                        var is = fs.createReadStream(source);
+                        var os = fs.createWriteStream(destFile);
+                        is.on('end', function() {
+                            node.send(msg);
+                        });
+
+                        is.pipe(os);
+                        return;
+
+                    } catch (e) {
+                        node.error(e, msg);
+                        return;
+                    }
+                }
+            }
+            return;
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-copy", CopyNode);
+
 
     function DeleteNode(n) {
         RED.nodes.createNode(this,n);
@@ -141,10 +282,8 @@ module.exports = function(RED) {
             }
             pathname += RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            try {
-                fs.unlinkSync(pathname);
-            } catch (e) {
-                if (e.code === 'EISDIR') {
+            fs.unlink(pathname, (err) => {
+                if (err && (err.code === 'EISDIR')) {
                     // rmdir instead
                     try {
                         fs.rmdirSync(pathname);
@@ -152,22 +291,19 @@ module.exports = function(RED) {
                         if (ed.code != 'ENOENT') {
                             // deleting non-existent directory is OK
                             node.error(ed, msg);
-                            return;
                         }
                     }
-                } else if (e.code != 'ENOENT') {
+                } else if (err && (err.code != 'ENOENT')) {
                     // Deleting a non-existent file is not an error
                     node.error(e, msg);
-                    return;
                 }
-            }
-
-            node.send(msg);
-
+                node.send(msg);
+             });
         });
     }
 
     RED.nodes.registerType("fs-ops-delete", DeleteNode);
+
 
     function AccessNode(n) {
         RED.nodes.createNode(this,n);
@@ -398,13 +534,14 @@ module.exports = function(RED) {
 
             var filter = RED.util.evaluateNodeProperty(node.filter, node.filterType, node, msg);
 
+            var dir;
 
             filter = filter.replace('.', '\\.');
             filter = filter.replace('*', '.*');
             filter = new RegExp(filter);
 
             try {
-                var dir = fs.readdirSync(pathname);
+                dir = fs.readdirSync(pathname);
                 dir = dir.filter(function(value) { return filter.test(value); });
             } catch (e) {
                 node.error(e, msg);
@@ -509,5 +646,5 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("fs-ops-mktmpdir", MktmpdirNode);
 
-}
+};
 

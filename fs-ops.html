@@ -97,10 +97,120 @@
     <p>Moves, renames or links a file from the source to the destination.</p>
     <p>Specified file is moved from the source path to the destination path and
     renamed from the source filename to the destination filename.</p>
-    <p>If <i>Link Files</i> is set, destination file will be a symbolic link to the source file.</p>
+    <p><b>Warning:</b>This node will always overwrite the destination</p>
+    <p>If <i>Link Files</i> is set, destination file will be a symbolic link to the source file. - DEPRECATED: Use
+    File Copy node instead.</p>
     <p>Message is actioned and passed through unchanged if move/rename is successful.</p>
 </script>
 
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-copy',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    sourcePath: {value: ""},
+            sourcePathType: {value: "str"},
+	    sourceFilename: {value: "", required: true},
+            sourceFilenameType: {value: "msg"},
+            destPath: {value: "", required: true},
+            destPathType: {value: "str"},
+            destFilename: {value: "", required: true},
+            destFilenameType: {value: "msg"},
+            link: {value:false},
+            overwrite: {value: false}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"File Copy";
+        },
+        oneditprepare: function() {
+            if (!this.sourcePathType) {
+                this.sourcePathType = 'str';
+            }
+            $("#node-input-sourcePath").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-sourcePathType")
+            });
+
+            if (!this.sourceFilenameType) {
+                this.sourceFilenameType = 'msg';
+            }
+            $("#node-input-sourceFilename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-sourceFilenameType")
+            });
+
+            if (!this.destPathType) {
+                this.destPathType = 'str';
+            }
+            $("#node-input-destPath").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-destPathType")
+            });
+
+            if (!this.destFilenameType) {
+                this.destFilenameType = 'msg';
+            }
+            $("#node-input-destFilename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-destFilenameType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-copy">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sourcePath"><i class="fa fa-folder"></i> Source Path</label>
+        <input type="text" id="node-input-sourcePath" placeholder="Path to move from" style="width:250px;">
+        <input type="hidden" id="node-input-sourcePathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-sourceFilename"><i class="fa fa-file"></i> Source Filename</label>
+        <input type="text" id="node-input-sourceFilename" placeholder="Old filename" style="width:250px;">
+        <input type="hidden" id="node-input-sourceFilenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destPath"><i class="fa fa-folder"></i> Destination Path</label>
+        <input type="text" id="node-input-destPath" placeholder="Path to move to" style="width:250px;">
+        <input type="hidden" id="node-input-destPathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destFilename"><i class="fa fa-file"></i> Destination Filename</label>
+        <input type="text" id="node-input-destFilename" placeholder="New filename" style="width:250px;">
+        <input type="hidden" id="node-input-destFilenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-link"><i class="fa fa-link"></i> Link Files</label>
+        <input type="checkbox" value="false" id="node-input-link" style="display: inline-block; width: auto; vertical-align: top;"/>
+    </div>
+    <div class="form-row">
+        <label for="node-input-overwrite"><i class="fa fa-eraser"></i> Overwrite Destination</label>
+        <input type="checkbox" value="false" id="node-input-overwrite" style="display: inline-block; width: auto; vertical-align: top;"/>
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-copy">
+    <p>Copies or links a file from the source to the destination.</p>
+    <p>Specified file is copied from the source path to the destination path and
+    renamed from the source filename to the destination filename.  An error is thrown if the destination file
+    exists and the overwrite option is not set.</p>
+    <p>If <i>Link Files</i> is set, destination file will be a symbolic link to the source file.</p>
+    <p>Message is actioned and passed through unchanged if copy is successful.</p>
+</script>
 
 <script type="text/javascript">
     RED.nodes.registerType('fs-ops-delete',{
