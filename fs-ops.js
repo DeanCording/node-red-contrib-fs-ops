@@ -276,29 +276,48 @@ module.exports = function(RED) {
 
         node.on("input", function(msg) {
 
+            var error = false;
+
             var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
             if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
                 pathname += path.sep;
             }
-            pathname += RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            fs.unlink(pathname, (err) => {
-                if (err && (err.code === 'EISDIR')) {
-                    // rmdir instead
-                    try {
-                        fs.rmdirSync(pathname);
-                    } catch (ed) {
-                        if (ed.code != 'ENOENT') {
-                            // deleting non-existent directory is OK
-                            node.error(ed, msg);
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+
+            var deleteFile = function(file) {
+                try {
+                    fs.unlinkSync(pathname + file);
+                } catch (e) {
+                    if (e.code === 'EISDIR') {
+                        // rmdir instead
+                        try {
+                            fs.rmdirSync(pathname + file);
+                        } catch (ed) {
+                            if (ed.code != 'ENOENT') {
+                                // deleting non-existent directory is OK
+                                node.error(ed, msg);
+                                error = true;
+                            }
                         }
+                    } else if (e.code != 'ENOENT') {
+                        // Deleting a non-existent file is not an error
+                        node.error(e, msg);
+                        error = true;
                     }
-                } else if (err && (err.code != 'ENOENT')) {
-                    // Deleting a non-existent file is not an error
-                    node.error(e, msg);
                 }
+            };
+
+
+            if (Array.isArray(filename)) {
+                    filename.forEach(deleteFile);
+            } else {
+                deleteFile(filename);
+            }
+
+            if (!error) {
                 node.send(msg);
-             });
+            }
         });
     }
 
