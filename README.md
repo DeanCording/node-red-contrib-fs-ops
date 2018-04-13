@@ -5,8 +5,9 @@ This node is a wrapper around many of the functions in Node's file system librar
 
 The nodes and functions provided are:
 
-  * fs-ops-move - Move, rename, or link files and directories
-  * fs-ops-delete - Delete a file or directory
+  * fs-ops-move - Move or rename files and directories
+  * fs-ops-copy - Copy or link files
+  * fs-ops-delete - Delete file/s or directory
   * fs-ops-access - Test existence and accessibility of a file or directory
   * fs-ops-size - Get size of a file or directory in bytes
   * fs-ops-link - Determines if a file is a link and returns the file it links to.
@@ -17,5 +18,8 @@ The nodes and functions provided are:
 
 
 Parameters such as path and filename can be sourced from strings, or message, flow, or global property.  Likewise, results can be stored in a message, flow or global property.
+
+fs-ops-dir can be used to extract a llist of files using a filter,and then pass that list to other fs-ops nodes to perform 
+bulk operations.
 
 The general design is that each node will pass the message if the action is successful, otherwise it will throw an exception and drop the message.
