@@ -571,6 +571,110 @@
     <p>Error is thrown and message dropped if size cannot be determined.</p>
 </script>
 
+<script type="text/javascript">
+    RED.nodes.registerType('fs-ops-stats',{
+        category: 'storage',
+        color: '#767432',
+        defaults: {
+            name: {value:""},
+	    path: {value: ""},
+            pathType: {value: "str"},
+	    filename: {value: "", required: true},
+            filenameType: {value: "msg"},
+	    stats: {value: "stats", required: true},
+            sizeType: {value: "msg"}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"File Stats";
+        },
+        oneditprepare: function() {
+            if (!this.pathType) {
+                this.pathType = 'str';
+            }
+            $("#node-input-path").typedInput({
+                default: 'str',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-pathType")
+            });
+
+            if (!this.filenameType) {
+                this.filenameType = 'msg';
+            }
+            $("#node-input-filename").typedInput({
+                default: 'msg',
+                types: ['str','msg','flow','global'],
+                typeField: $("#node-input-filenameType")
+            });
+
+            if (!this.statsType) {
+                this.statsType = 'msg';
+            }
+            $("#node-input-stats").typedInput({
+                default: 'msg',
+                types: ['msg','flow','global'],
+                typeField: $("#node-input-statsType")
+            });
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="fs-ops-stats">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="fa fa-folder"></i> Path</label>
+        <input type="text" id="node-input-path" placeholder="Path" style="width:250px;">
+        <input type="hidden" id="node-input-pathType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
+        <input type="text" id="node-input-filename" placeholder="Filename" style="width:250px;">
+        <input type="hidden" id="node-input-filenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-stats"><i class="fa fa-edit"></i> Stats Property</label>
+        <input type="text" id="node-input-stats" placeholder="Property to record size" style="width:250px;">
+        <input type="hidden" id="node-input-statsType">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="fs-ops-stats">
+    <p>Returns the stats of a file on host filesystem.</p>
+    <h3>Properties</h3>
+    <dl class="message-properties">
+        <dt>name
+            <span class="property-type">string</span>
+        </dt>
+        <dd>Name of node to be displayed in editor</dd>
+        <dt>source path<span class="property-type">string</span></dt>
+        <dd>Path of directory containing file</dd>
+        <dt>source filename<span class="property-type">string | array of string</span></dt>
+        <dd>Name/s of file/s</dd>
+        <dt>size property</dt>
+        <dd>Property where file size is recorded</dd>
+    </dl>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+    <p>Any</p>
+    </dl>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+    <p>File size is stored in specified property.</p>
+    </dl>
+
+    <h3>Details</h3>
+    <p><a href="https://nodejs.org/docs/latest-v11.x/api/fs.html#fs_class_fs_stats">File stats object</a> 
+    is added in the specified property. If passed an array of
+    filenames, like from fs-ops-dir, node will add an array of corresponding
+    file stats.</p>
+    <p>Error is thrown and message dropped if stats cannot be determined.</p>
+</script>
 
 <script type="text/javascript">
     RED.nodes.registerType('fs-ops-link',{
@@ -782,6 +886,8 @@
     <ul><li>F - Regular file</li>
     <li>D - Directory</li>
     <li>C - Character device</li>
+    <li>B - Block device</li>
+    <li>L - Symbolic link</li>
     <li>S - Special file</li>
     </ul></p>
     <p>Error is thrown and message dropped if type cannot be determined.</p>
@@ -1069,10 +1175,6 @@
         <input type="hidden" id="node-input-prefixType">
     </div>
     <div class="form-row">
-        <label for="node-input-mode"><i class="icon-lock"></i> Access Mode</label>
-        <input type="text" id="node-input-mode" placeholder="Octal">
-    </div>
-    <div class="form-row">
         <label for="node-input-fullpath"><i class="fa fa-edit"></i> Directory Property</label>
         <input type="text" id="node-input-fullpath" placeholder="Property to record directory name" style="width:250px;">
         <input type="hidden" id="node-input-fullpathType">
@@ -1091,8 +1193,6 @@
         <dd>Path of directory containing new directory</dd>
         <dt>prefix<span class="property-type">string</span></dt>
         <dd>Prefix of new directory name</dd>
-        <dt>access mode<span class="property-type">integer</span></dt>
-        <dd>Access mode for new directory</dd>
         <dt>directory property</dt>
         <dd>Property where new directory path is recorded</dd>
     </dl>
