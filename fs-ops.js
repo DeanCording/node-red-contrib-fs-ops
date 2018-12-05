@@ -78,7 +78,7 @@ module.exports = function(RED) {
                     if (err.code === 'EISDIR') {
                         // rmdir instead
                         try {
-                            fs.rmdirSync(pathname);
+                            fs.rmdirSync(destFile);
                         } catch (ed) {
                             if (ed.code != 'ENOENT') {
                                 // deleting non-existent directory is OK
@@ -88,7 +88,7 @@ module.exports = function(RED) {
                         }
                     } else if (err.code != 'ENOENT') {
                         // Deleting a non-existent file is not an error
-                        node.error(e, msg);
+                        node.error(err, msg);
                         return;
                     }
                 }
@@ -190,7 +190,7 @@ module.exports = function(RED) {
                         if (err.code === 'EISDIR') {
                             // rmdir instead
                             try {
-                                fs.rmdirSync(pathname);
+                                fs.rmdirSync(destFile);
                             } catch (ed) {
                                 if (ed.code != 'ENOENT') {
                                     // deleting non-existent directory is OK
@@ -200,7 +200,7 @@ module.exports = function(RED) {
                             }
                         } else if (err.code != 'ENOENT') {
                             // Deleting a non-existent file is not an error
-                            node.error(e, msg);
+                            node.error(err, msg);
                             return;
                         }
                     }
@@ -414,6 +414,52 @@ module.exports = function(RED) {
 
     RED.nodes.registerType("fs-ops-size", SizeNode);
 
+    function StatsNode(n) {
+        RED.nodes.createNode(this,n);
+        var node = this;
+
+        node.name = n.name;
+        node.path = n.path || "";
+        node.pathType = n.pathType || "str";
+        node.filename = n.filename || "";
+        node.filenameType = n.filenameType || "msg";
+        node.stats = n.stats || "";
+        node.statsType = n.statsType || "msg";
+
+        node.on("input", function(msg) {
+
+            var pathname = RED.util.evaluateNodeProperty(node.path, node.pathType, node, msg);
+
+            if ((pathname.length > 0) && (pathname.lastIndexOf(path.sep) != pathname.length-1)) {
+                pathname += path.sep;
+            }
+
+            var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
+
+            var stats;
+
+            try {
+                if (Array.isArray(filename)) {
+                    stats = [];
+                    filename.forEach(function(file) {
+                        stats.push(fs.statSync(pathname + file));
+                    });
+                } else {
+                    stats = fs.statSync(pathname + filename);
+                }
+            } catch (e) {
+                node.error(e,msg);
+                return;
+            }
+
+            setProperty(node, msg, node.stats, node.statsType, stats);
+
+            node.send(msg);
+
+        });
+    }
+
+    RED.nodes.registerType("fs-ops-stats", StatsNode);
 
     function LinkNode(n) {
         RED.nodes.createNode(this,n);
@@ -492,6 +538,8 @@ module.exports = function(RED) {
             if (filetype.isFile()) return 'F';
             if (filetype.isDirectory()) return 'D';
             if (filetype.isCharacterDevice()) return 'C';
+            if (filetype.isSymbolicLink()) return 'L';
+            if (filetype.isBlockDevice()) return 'B';
             return 'S';
         }
 
@@ -629,7 +677,6 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.prefix = n.prefix || "";
         node.prefixType = n.prefixType || "msg";
-        node.mode = parseInt(n.mode, 8);
         node.fullpath = n.fullpath || "";
         node.fullpathType = n.fullpathType || "msg";
 
@@ -644,11 +691,11 @@ module.exports = function(RED) {
 
             try {
                 if (fs.mkdtempSync) {
-                    pathname = fs.mkdtempSync(pathname, node.mode);
+                    pathname = fs.mkdtempSync(pathname);
 
                 } else {
-                    pathname += Math.random().toString(36).slice(2,8);
-                    fs.mkdirSync(pathname, node.mode);
+                    pathname += Math.random().toString(16).slice(2,8);
+                    fs.mkdirSync(pathname);
 
                 }
             } catch (e) {
