@@ -10,6 +10,7 @@ The nodes and functions provided are:
   * fs-ops-delete - Delete file/s or directory
   * fs-ops-access - Test existence and accessibility of a file or directory
   * fs-ops-size - Get size of a file or directory in bytes
+  * fs-ops-stats - Get stats of a file or directory
   * fs-ops-link - Determines if a file is a link and returns the file it links to.
   * fs-ops-type - Determines the type of a file - regular, directory, character, or special
   * fs-ops-dir - Get array of file and directory names in a directory
