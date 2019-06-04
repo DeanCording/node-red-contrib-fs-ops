@@ -1,7 +1,7 @@
 # node-red-contrib-fs-ops
 A Node Red node for performing file system operations.
 
-This node is a wrapper around many of the functions in Node's file system library, which in turn is a wrapper around the standard POSIX filesysem functions.
+This node is a wrapper around many of the functions in Node's file system library, which in turn is a wrapper around the standard POSIX filesystem functions.
 
 The nodes and functions provided are:
 
