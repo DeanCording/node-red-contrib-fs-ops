@@ -633,6 +633,7 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.dirname = n.dirname || "";
         node.dirnameType = n.dirnameType || "msg";
+        node.recursive = n.recursive || false;
         node.mode = parseInt(n.mode, 8);
         node.fullpath = n.fullpath || "";
         node.fullpathType = n.fullpathType || "msg";
@@ -647,7 +648,7 @@ module.exports = function(RED) {
             pathname += RED.util.evaluateNodeProperty(node.dirname, node.dirnameType, node, msg);
 
             try {
-                fs.mkdirSync(pathname, node.mode);
+                fs.mkdirSync(pathname, {mode: node.mode, recursive: node.recursive});
             } catch (e) {
                 // Creating an existing directory is not an error
                 if (e.code != 'EEXIST') {
