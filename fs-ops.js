@@ -286,27 +286,21 @@ module.exports = function(RED) {
             var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
             var deleteFile = function(file) {
-                try {
-                    fs.unlinkSync(pathname + file);
-                } catch (e) {
-                    if (e.code === 'EISDIR') {
-                        // rmdir instead
-                        try {
-                            fs.rmdirSync(pathname + file);
-                        } catch (ed) {
-                            if (ed.code != 'ENOENT') {
-                                // deleting non-existent directory is OK
-                                node.error(ed, msg);
-                                error = true;
-                            }
+                var p = path.join(pathname ? pathname : "", file ? file : "");
+                if(fs.existsSync(p)) {
+                    const stats = fs.lstatSync(p);
+                    try {
+                        if (stats.isFile()) {
+                            fs.unlinkSync(p);
+                        } else if(stats.isDirectory()) {
+                            fs.rmdirSync(p);
                         }
-                    } else if (e.code != 'ENOENT') {
-                        // Deleting a non-existent file is not an error
+                    } catch(e) {
                         node.error(e, msg);
                         error = true;
                     }
                 }
-            };
+            }
 
 
             if (Array.isArray(filename)) {
