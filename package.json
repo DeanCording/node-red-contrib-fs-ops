@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-fs-ops",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "A node-red node to perform basic file system operations.",
   "dependencies": {},
   "author": {
