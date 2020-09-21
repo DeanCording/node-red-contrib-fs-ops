@@ -273,6 +273,9 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.filename = n.filename || "";
         node.filenameType = n.filenameType || "msg";
+        node.recursive = n.recursive || false;
+        node.maxRetries = parseInt(n.maxRetries) || 0;
+        node.retryDelay = parseInt(n.retryDelay) || 100;
 
         node.on("input", function(msg) {
 
@@ -293,7 +296,8 @@ module.exports = function(RED) {
                         if (stats.isFile()) {
                             fs.unlinkSync(p);
                         } else if(stats.isDirectory()) {
-                            fs.rmdirSync(p);
+                            console.log({recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay});
+                            fs.rmdirSync(p, {recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay});
                         }
                     } catch(e) {
                         node.error(e, msg);

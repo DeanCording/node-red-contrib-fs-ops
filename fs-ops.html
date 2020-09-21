@@ -281,7 +281,10 @@
 	    path: {value: ""},
             pathType: {value: "str"},
 	    filename: {value: "", required: true},
-            filenameType: {value: "msg"}
+            filenameType: {value: "msg"},
+        recursive: {value: false, required: false},
+        maxRetries: {value: 0, required: false, validate:function(v) { return !v || !isNaN(v) }},
+        retryDelay: {value: 100, required: false, validate:function(v) { return !v || !isNaN(v) }},
         },
         inputs:1,
         outputs:1,
@@ -308,6 +311,14 @@
                 typeField: $("#node-input-filenameType")
             });
 
+            $("#node-input-recursive").on("change", function() {
+                if($(this).is(':checked')) {
+                    $(".form-row-recursive").show();
+                } else {
+                    $(".form-row-recursive").hide();
+                }
+            }).change();
+
         }
     });
 </script>
@@ -326,6 +337,19 @@
         <label for="node-input-filename"><i class="fa fa-file"></i> Filename</label>
         <input type="text" id="node-input-filename" placeholder="File to delete" style="width:250px;">
         <input type="hidden" id="node-input-filenameType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-recursive"></label>
+        <input type="checkbox" id="node-input-recursive" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-recursive" style="width: auto"><i class="fa fa-sitemap"></i> Recursive</label>
+    </div>
+    <div class="form-row hide form-row-recursive">
+        <label for="node-input-maxRetries"><i class="fa fa-retweet"></i> Max retries</label>
+        <input type="number" id="node-input-maxRetries" style="width:250px;">
+    </div>
+    <div class="form-row hide form-row-recursive">
+        <label for="node-input-retryDelay"><i class="fa fa-pause"></i> Delay (ms)</label>
+        <input type="number" id="node-input-retryDelay" style="width:250px;">
     </div>
 </script>
 
