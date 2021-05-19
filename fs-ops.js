@@ -297,7 +297,10 @@ module.exports = function(RED) {
                             fs.unlinkSync(p);
                         } else if(stats.isDirectory()) {
                             console.log({recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay});
-                            await fs.rmdir(p, {recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay});
+                            const prom = new Promise(resolve => {
+                                fs.rmdir(p, {recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay}, res => resolve(res));
+                            });
+                            await prom;
                         }
                     } catch(e) {
                         node.error(e, msg);
