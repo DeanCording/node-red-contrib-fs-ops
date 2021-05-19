@@ -277,7 +277,7 @@ module.exports = function(RED) {
         node.maxRetries = parseInt(n.maxRetries) || 0;
         node.retryDelay = parseInt(n.retryDelay) || 100;
 
-        node.on("input", async function(msg) {
+        node.on("input", async function(msg, send, done) {
 
             var error = false;
 
@@ -319,8 +319,10 @@ module.exports = function(RED) {
             }
 
             if (!error) {
-                node.send(msg);
+                send(msg);
             }
+
+            done();
         });
     }
 
