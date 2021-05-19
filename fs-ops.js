@@ -273,8 +273,11 @@ module.exports = function(RED) {
         node.pathType = n.pathType || "str";
         node.filename = n.filename || "";
         node.filenameType = n.filenameType || "msg";
+        node.recursive = n.recursive || false;
+        node.maxRetries = parseInt(n.maxRetries) || 0;
+        node.retryDelay = parseInt(n.retryDelay) || 100;
 
-        node.on("input", function(msg) {
+        node.on("input", async function(msg, send, done) {
 
             var error = false;
 
@@ -285,7 +288,7 @@ module.exports = function(RED) {
 
             var filename = RED.util.evaluateNodeProperty(node.filename, node.filenameType, node, msg);
 
-            var deleteFile = function(file) {
+            var deleteFile = async function(file) {
                 var p = path.join(pathname ? pathname : "", file ? file : "");
                 if(fs.existsSync(p)) {
                     const stats = fs.lstatSync(p);
@@ -293,7 +296,11 @@ module.exports = function(RED) {
                         if (stats.isFile()) {
                             fs.unlinkSync(p);
                         } else if(stats.isDirectory()) {
-                            fs.rmdirSync(p);
+                            console.log({recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay});
+                            const prom = new Promise(resolve => {
+                                fs.rmdir(p, {recursive: node.recursive, maxRetries: node.maxRetries, retryDelay: node.retryDelay}, res => resolve(res));
+                            });
+                            await prom;
                         }
                     } catch(e) {
                         node.error(e, msg);
@@ -304,14 +311,18 @@ module.exports = function(RED) {
 
 
             if (Array.isArray(filename)) {
-                    filename.forEach(deleteFile);
+                for(const file of filename) {
+                    await deleteFile(file);
+                }
             } else {
-                deleteFile(filename);
+                await deleteFile(filename);
             }
 
             if (!error) {
-                node.send(msg);
+                send(msg);
             }
+
+            done();
         });
     }
 
