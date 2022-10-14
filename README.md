@@ -18,7 +18,7 @@ The nodes and functions provided are:
   * fs-ops-mktmpdir - Make a new directory with a random unique name
 
 
-Parameters such as path and filename can be sourced from strings, or message, flow,jsonata or global property.  Likewise, results can be stored in a message, flow or global property.
+Parameters such as path and filename can be sourced from strings, or message, flow, jsonata or global property.  Likewise, results can be stored in a message, flow or global property.
 
 fs-ops-dir can be used to extract a llist of files using a filter,and then pass that list to other fs-ops nodes to perform 
 bulk operations.
