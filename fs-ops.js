@@ -20,6 +20,7 @@
  * SOFTWARE.
  **/
 
+// eslint-disable-next-line no-unused-vars
 const util = require('util');
 const fs = require('fs');
 const path = require('path');
@@ -300,7 +301,7 @@ module.exports = function(RED) {
                         error = true;
                     }
                 }
-            }
+            };
 
 
             if (Array.isArray(filename)) {
